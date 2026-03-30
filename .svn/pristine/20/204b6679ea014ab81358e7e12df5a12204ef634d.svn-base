@@ -1,0 +1,81 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ include file="../../include/student/head.jsp"%>
+    <div class="main-container">
+        <aside>
+            <div class="side-menu-top">
+             	<a href="../notice/list.do" class="menu-item">공지사항</a>
+                <a href="../apply/apply.do" class="menu-item">수강 신청</a>
+                <a href="../task/list.do" class="menu-item active">과제 관리</a>
+            </div>
+ <%@ include file="../../include/student/side.jsp"%>           
+        </aside>
+        
+        <main>
+            <!-- Breadcrumb 및 제목 -->
+            <div class="content-header">
+                <h2 class="content-title">과제 상세보기</h2>
+                <nav aria-label="breadcrumb">
+                    <div class="breadcrumb">
+                         <a href="list.do"> 과제관리 &nbsp; </a> > &nbsp; <span>과제상세보기</span>
+                    </div>
+                </nav>
+            </div>
+            
+            <!-- 명확해진 hr 구분선 -->
+             <hr class="view-divider">
+
+            <!-- [폭이 조정된] 과제 상세 내용 카드 -->
+            <div class="detail-card">
+                <div class="task-badge">${ submission.sname }</div>
+                    <i class="fa-solid fa-caret-right"></i>
+                <div class="subject-badge">${ submission.ttitle }</div>
+                <h1 class="detail-main-title">${ submission.title }</h1>
+                <div class="detail-meta">
+                    <span>제출일 : ${ submission.smdate }</span>
+                    <span>제출자 : ${ submission.name } (${ submission.num })</span>
+                </div>
+
+                <div class="detail-content">${ submission.content }</div>
+
+                <div class="attachment-bar">
+                    <div class="file-info">
+                        <span class="file-name">${ submission.fname }</span>
+                        <span class="file-size">2.4 MB / 제출완료</span>
+                    </div>
+                    <button class="btn-download">다운로드</button>
+                </div>
+
+                <div class="feedback-section">
+                    <div class="feedback-header">
+                        <div class="feedback-title">교수님 평가 및 피드백</div>
+                        <div class="score-box">
+                            <div class="score-label">FINAL SCORE</div>
+                            <div class="score-value"> / 100</div>
+                        </div>
+                    </div>
+                    
+                    <div class="feedback-content">
+                        <!-- 피드백 내용 -->
+                    </div>
+
+                    <div class="attachment-bar" style="background-color: #fbfbfb;">
+                        <div class="file-info">
+                            <span class="file-name" style="color: #bbb;">피드백 첨부파일 없음</span>
+                        </div>
+                        <button class="btn-download">다운로드</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 하단 버튼 영역 -->
+            <div class="detail-footer">
+                <a href="list.do"><button class="btn-custom btn-list">목록으로</button></a>
+                <a href="update.do"> <button class="btn-custom btn-edit">수정</button></a>
+                <a href="list.do"><button class="btn-custom btn-delete">삭제</button></a>
+            </div>
+
+        </main>
+    </div>
+</body>
+</html>

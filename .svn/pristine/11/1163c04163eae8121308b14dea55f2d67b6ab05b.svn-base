@@ -1,0 +1,191 @@
+package com.elms.service;
+
+import java.util.List;
+
+import org.apache.ibatis.session.SqlSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.elms.vo.SearchVO;
+import com.elms.vo.SubjectVO;
+import com.elms.vo.SubmissionVO;
+import com.elms.vo.TaskVO;
+import com.elms.vo.UserVO;
+
+@Service
+public class TeacherService {
+
+	@Autowired
+	private SqlSession session;
+	
+	private static final String namespace = "elms.teacher";
+	
+	//회원정보수정 비밀번호 일치 확인 처리
+	public boolean PwMatch(String id, String pw) {
+		UserVO vo = new UserVO();
+		vo.setUid(id);
+		vo.setPw(pw);
+		int match = session.selectOne(namespace + ".match", vo);
+		if( match != 0) {
+			return true;
+		}
+		return false;
+	}
+	
+	//(회원정보수정)회원정보 가져오기 
+	public UserVO UserInfo(UserVO vo) {
+		UserVO UserInfo = session.selectOne(namespace + ".info", vo);
+		
+		return UserInfo;
+	}
+	
+	//회원정보 수정 처리
+	public void InfoUpdate(String id, String hp, String pw) {
+		UserVO vo = new UserVO();
+		vo.setUid(id);
+		vo.setHp(hp);
+		vo.setPw(pw);
+		session.update(namespace + ".infoupdate", vo);
+		
+	}
+	
+	//과목이름 중복검사 처리
+	public boolean SnameCheck(String sname) {
+		int check = session.selectOne(namespace + ".snamecheck", sname);
+		if( check == 0) {
+			return true;
+		}
+		return false;
+	}
+	
+	//과목등록 처리
+	public void SubjectOk(SubjectVO vo) {
+		session.insert(namespace + ".subjectinsert", vo);
+	}
+	
+	//과목리스트 가져오기
+	public List<SubjectVO> subjectList(int uno, int page) {
+		SearchVO vo = new SearchVO();
+		vo.setPageno(page);
+		vo.setNo(uno);
+		List<SubjectVO> list = session.selectList(namespace + ".subjectlist", vo);
+		
+		return list;
+	}
+	
+	//과목관리 화면 페이징을 위한 전체 과목수 가져오기
+	public int SubjectGetTotal(int uno) {
+		return session.selectOne(namespace + ".subjecttotal", uno);
+	}
+	
+	//각 과목 수강신청 학생 수 구하기
+	public int ApplyCount(int sno) {
+		int count = session.selectOne(namespace + ".applycount", sno);
+		return count;
+	}
+	
+	
+	//과목 삭제 처리
+	public void SubjectDel(String sno) {
+		session.delete(namespace + ".subjectdelete", sno);
+	}
+	
+	
+	//과목 수정 처리
+	public void SubjectUpdate(SubjectVO vo) {
+		session.update(namespace + ".subjectupdate", vo);
+	}
+	
+	
+	//과목 수정 모달 데이터 가져오기
+	public SubjectVO SubjectSearch(int uno, int sno) {
+		SubjectVO vo = new SubjectVO();
+		vo.setUno(uno);
+		vo.setSno(sno);
+		vo = session.selectOne(namespace + ".subjectsearch", vo);
+
+		return vo;
+	}
+
+	//과제 리스트 가져오기
+	public List<TaskVO> taskList(int sno, int page) {
+		SearchVO vo = new SearchVO();
+		vo.setPageno(page);
+		vo.setNo(sno);
+		List<TaskVO> list = session.selectList(namespace + ".tasklist", vo);
+		
+		return list;
+	}
+	
+	//각 과제 제출한 학생 수 구하기
+	public int SubmitCount(int tno) {
+		int submit = session.selectOne(namespace + ".submitcount", tno);
+		return submit;
+	}
+	
+	//각 과제 채점한 학생 수 구하기
+		public int ScoreCount(int tno) {
+			int score = session.selectOne(namespace + ".scorecount", tno);
+			return score;
+		}
+	
+	//과목관리 화면 페이징을 위한 전체 과제수 가져오기
+	public int TaskGetTotal(int sno) {
+		return session.selectOne(namespace + ".tasktotal", sno);
+	}
+	
+	//생성한 과목 조회
+	public List<SubjectVO> MySubject(int uno){
+		return session.selectList(namespace + ".mysubject", uno);
+	}
+
+	//과제 생성 처리
+	public void TaskWrite(TaskVO vo) {
+		session.insert(namespace + ".taskinsert", vo);
+	}
+
+	//과제 보기 처리
+	public TaskVO taskView(int tno)
+	{
+		TaskVO vo = session.selectOne(namespace + ".taskview",tno);
+		return vo; 
+		
+	}
+
+	//과제 삭제 처리
+	public void TaskDel(int tno) {
+		session.delete(namespace + ".taskdelete", tno);
+	}
+	
+	//과제 수정 처리
+	public void TaskUpdate(TaskVO vo) {
+		session.update(namespace + ".taskupdate", vo);
+	}
+	
+	//학생&채점화면 페이징을 위한 전체 학생 수 가져오기
+	public int SlistGetTotal(int tno) {
+		return session.selectOne(namespace + ".slisttotal", tno);
+	}
+	
+	//학생&채점화면 리스트 가져오기
+	public List<SubmissionVO> SList(TaskVO vo, int page) {
+		SearchVO svo = new SearchVO();
+		svo.setPageno(page);
+		svo.setNo(vo.getTno());
+		svo.setTemp(vo.getSno());
+		List<SubmissionVO> list = session.selectList(namespace + ".slist", svo);
+
+		return list;
+	}
+	
+	//과제 채점모달 정보 불러오기
+	public SubmissionVO LoadTask(SubmissionVO vo) {
+		return session.selectOne(namespace + ".loadtask", vo);
+	}
+	
+	//과제 채점 저장처리
+	public void ScoreUpdate(SubmissionVO vo) {
+		session.insert(namespace + ".scoreupdate", vo);
+	}
+}

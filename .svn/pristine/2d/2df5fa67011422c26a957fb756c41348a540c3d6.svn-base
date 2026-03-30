@@ -1,0 +1,191 @@
+package com.elms.control;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.elms.service.StudentService;
+import com.elms.vo.ApplyVO;
+import com.elms.vo.SubjectVO;
+import com.elms.vo.UserVO;
+
+@Controller
+@RequestMapping("/student")
+public class StudentController {
+
+	@Autowired
+	StudentService studentService;
+	
+	@RequestMapping(value = "/notice/list.do")
+	public String noticeList() {
+		return "student/notice/list";
+	}
+	
+	@RequestMapping(value = "/notice/view.do")
+	public String noticeView() {
+		return "student/notice/view";
+	}
+	
+	//학생 수강 신청 페이지
+	@RequestMapping(value = "/apply/apply.do")
+	public String applyApply(
+			@RequestParam(defaultValue = "1") int page, 
+			@RequestParam(defaultValue = "all")String kind,
+			Model model, HttpSession session) {
+		
+		//유저 로그인 확인 여부를 위한 조회
+		UserVO login = (UserVO)session.getAttribute("login");
+		//로그인 정보 없으면 로그인 페이지로 이동
+		if(login == null) return "redirect:/login.do";
+		
+		int perPage = 10;
+		int start = (page - 1) * perPage;
+		
+		Map<String, Object> params = new HashMap<String, Object>();
+	    params.put("uno", login.getUno());
+	    params.put("start", start);
+	    params.put("perPage", perPage);
+	    params.put("kind", kind);
+		
+		//과목 전체 조회
+		List<SubjectVO> subjects = studentService.SubjectSelect(params);
+		
+		//전체 과목 수 조회
+		int total = studentService.SubjectCount(params);
+		
+		//내가 수강 신청한 과목 조회
+		List<ApplyVO> applys = studentService.ApplySelect(login.getUno());
+		//수강 신청한 학생 수 조회
+		int applycnt = studentService.ApplyOne(login.getUno());
+		//내가 수강 신청한 과목 수 조회
+		int myapplycnt = studentService.MyApplyOne(login.getUno());
+		
+		//최대 페이지
+		int maxpage = total / 10;
+		if (total % 10 != 0)
+			maxpage++;
+
+		// 페이징 블럭 계산 (시작블럭, 끝블럭)
+		//(page - 1)을 해야 10, 20, 30 단위 페이지에서도 블록이 유지
+		int startbk = ((page - 1) / 10) * 10 + 1;
+		//끝블럭 = 시작블럭 + 10 - 1
+		int endbk = startbk + 9;
+		//끝블럭 > 전체페이지 갯수 크면
+		if (endbk > maxpage) {
+			endbk = maxpage;
+		}
+		
+		model.addAttribute("login", login);
+		model.addAttribute("subjects", subjects);
+		model.addAttribute("applys",applys);
+		model.addAttribute("applycnt", applycnt);
+		model.addAttribute("myapplycnt", myapplycnt);
+		
+		// 페이징 처리용 정보를 jsp 전달
+		model.addAttribute("total", total);
+		model.addAttribute("maxpage", maxpage);
+
+		model.addAttribute("startbk", startbk);
+		model.addAttribute("endbk", endbk);
+
+		model.addAttribute("currentpg", page);
+		model.addAttribute("kind", kind);
+		
+		return "student/apply/apply";
+	}
+	
+	//학생 수강 신청 처리
+	@RequestMapping(value = "/apply/apply.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String applyApply(
+			@RequestParam(value="uno", required=false) int uno,
+			@RequestParam(value="sno", required=false) int sno) {
+		studentService.SubjectApply(uno, sno);
+		return "OK";
+	}
+	
+	//학생 수강 신청 취소 처리
+	@RequestMapping(value = "/apply/applyCancel.do")
+	@ResponseBody
+	public String applyDelete(
+			@RequestParam(value="uno", required=false) int uno,
+			@RequestParam(value="sno", required=false) int sno) {
+		studentService.ApplyDelete(uno, sno);
+		return "OK";
+	}
+	
+	@RequestMapping(value = "/task/list.do")
+	public String taskList() {
+		return "student/task/list";
+	}
+	
+	@RequestMapping(value = "/task/t_view.do")
+	public String taskTview() {
+		return "student/task/t_view";
+	}
+	
+	@RequestMapping(value = "/task/write.do")
+	public String taskWrite() {
+		return "student/task/write";
+	}
+	
+	@RequestMapping(value = "/task/view.do")
+	public String taskView() {
+		return "student/task/view";
+	}
+	
+	@RequestMapping(value = "/task/update.do")
+	public String taskUpdate() {
+		return "student/task/update";
+	}
+	
+	@RequestMapping(value = "/user/update.do")
+	public String userUpdate() {
+		return "student/user/update";
+	}
+	
+	@RequestMapping(value = "/user/pwmatch.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String PwMatch(String id, String pw, HttpSession session) {
+		UserVO login = (UserVO)session.getAttribute("login");
+		if(login == null) return "redirect:/user/login.do";
+		boolean match = studentService.PwMatch(id, pw);
+		if( match == true) {
+			return "O";
+		}else {
+			return "X";
+		}
+	}
+	
+	@RequestMapping(value = "/user/updateok.do")
+	public String Updateok(String uid, Model model) {
+		UserVO vo = new UserVO();
+		vo.setUid(uid);
+		UserVO UserInfo = studentService.UserInfo(vo);
+		
+		model.addAttribute("num", UserInfo.getNum());
+		model.addAttribute("name", UserInfo.getName());
+		model.addAttribute("id", UserInfo.getUid());
+		model.addAttribute("hp", UserInfo.getHp());
+		model.addAttribute("major", UserInfo.getMajor());
+		return "student/user/updateok";
+	}
+	
+	@RequestMapping(value = "/user/infoupdate.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String InfoUpdate(String id, String hp, String pw) {
+		studentService.InfoUpdate(id, hp, pw);
+		return "OK";
+	}
+	
+}

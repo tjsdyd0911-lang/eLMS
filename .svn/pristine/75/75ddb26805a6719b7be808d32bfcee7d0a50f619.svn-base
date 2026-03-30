@@ -1,0 +1,113 @@
+/************************************
+ * 클래스 : 과제(task) 테이블용 VO
+ * 작성자 : 박윤희
+ * 작성일 : 2026.02.03
+ * [2026.02.11]백세원
+ * 		- 수정 내용 : 과목 제목(sname) 추가
+ * [2026.02.12]백세원
+ * 		- 수정 내용 : 제출 여부(scheck), 점수(score) 추가
+ * [2026.02.12]진선용
+ * 		- 수정 내용 : getTtype 변경
+ * [2026.02.12]백세원
+ * 		- 수정 내용 : getStype 변경
+ * [2026.02.13]진선용
+ *     - 수정 내용 : applynow 추가
+ * [2026.02.19]백세원
+ * 	   - 수정 내용 : 파일크기(fsize) 추가
+ * [2026.02.19]진선용
+ * 		- 수정 내용 : getHTML, getTtypeName 추가, getTtype, getStype 변경
+ * ***********************************/
+package com.elms.vo;
+
+public class TaskVO {
+	private int    tno;    	 //과제번호
+	private int    sno;    	 //과목번호
+	private String title;    //과제제목
+	private String content;  //과제내용
+	private String edate;    //제출마감일
+	private String stype;    //채점방식
+	private String ttype;    //과제구분
+	private String tclass;   //과제UI클래스
+	private String pname;    //물리파일
+	private String fname;    //논리파일
+	private String wdate;    //과제등록일
+	private String sname;	 //과목제목
+	private String scheck;	 //제출여부
+	private String score;	 //점수
+	private String fsize;	 //파일크기
+	private int	   applynow; //수강신청현황
+	
+	public int getTno() 	   { return tno;	 }
+	public int getSno() 	   { return sno;	 }
+	public String getTitle()   { return title;	 }
+	public String getContent() { return content; }
+	public String getEdate()   { return edate;	 }
+	public String getPname()   { return pname;	 }
+	public String getFname()   { return fname;	 }
+	public String getWdate()   { return wdate;	 }
+	public String getSname()   { return sname;	 }
+	public String getScheck()  { return scheck;	 }
+	public String getScore()   { return score;	 }
+	public String getFsize()   { return fsize;	 }
+	public int getApplynow()   { return applynow;}
+	public String getTtype()   { return ttype;   }
+	public String getStype()   { return stype;   }
+	public String getTtypeName()   {
+		if( ttype.equals("01")) {
+			return "중간과제";
+		}else if(ttype.equals("02")) {
+			return "기말과제";
+		}else{
+			return "수시과제";
+		}
+	}
+	public String getStypeName() {
+		if( stype.equals("01")) {
+			return "백분율 점수";
+		}else{
+			return "Pass or False 방식";
+		}
+	}
+	public String getHTML() {
+		String note = this.content;
+		//HTML을 TEXT로 변환한다.
+		note = note.replace("<","&lt;");
+		note = note.replace(">","&gt;");
+		note = note.replace("\n","\n<br>");
+		return note;		
+	}
+	
+	/*
+	public String getTclass() {
+		if( ttype.equals("01")) {
+			tclass = "badge-pill bg-green-dark";
+		}else if(ttype.equals("02")) {
+			tclass = "badge-pill bg-orange";
+		}else if(ttype.equals("03")) {
+			tclass = "badge-pill bg-gray";
+		}else {
+			tclass = "badge-pill bg-orange";
+		}
+		return tclass;
+	}	
+	*/
+	
+	public void setTno(int tno) 		   { this.tno = tno;		  }
+	public void setSno(int sno) 		   { this.sno = sno;		  }
+	public void setTitle(String title) 	   { this.title = title;	  }
+	public void setContent(String content) { this.content = content;  }
+	public void setEdate(String edate) 	   { this.edate = edate;	  }
+	public void setStype(String stype) 	   { this.stype = stype;	  }
+	public void setTtype(String ttype) 	   { this.ttype = ttype;	  }
+	public void setPname(String pname) 	   { this.pname = pname;	  }
+	public void setFname(String fname)     { this.fname = fname;	  }
+	public void setWdate(String wdate)     { this.wdate = wdate;	  }
+	public void setSname(String sname)     { this.sname = sname;	  }
+	public void setScheck(String scheck)   { this.scheck = scheck;	  }
+	public void setScore(String score)     { this.score = score;	  }
+	public void setFsize(String fsize)	   { this.fsize = fsize;	  }
+	public void setApplynow(int applynow)  { this.applynow = applynow;}
+	
+	
+	
+}

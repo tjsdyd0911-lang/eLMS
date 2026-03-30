@@ -1,0 +1,71 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ include file="../include/user/head.jsp" %>
+<script>
+	function PwUpdate() {
+		if( $("#pw").val() == "" )
+		{
+			$("#pw").focus();
+			alert("비밀번호를 입력하세요.");
+			return;
+		}
+		if( $("#pw").val() != $("#pwcheck").val() )
+		{
+			$("#pw").focus();
+			alert("비밀번호가 일치하지 않습니다.");
+			return;
+		}
+
+
+		var queryString = $("#pwFrm").serialize() ;
+
+		$.ajax({
+			type : "post",	
+			url : "pw_update.do",
+			data : queryString,
+			dataType : "html",
+			error: function(xhr, status, error)
+			{
+				alert(error);
+			},
+			success : function(result)
+			{
+				alert("비밀번호가 변경되었습니다.");
+				document.location = "login.do";
+			}
+		});		
+		//$("#pwFrm").submit();
+	}
+</script>
+        <main>
+            <div class="reset-card">
+                <h2>비밀번호 재설정</h2>
+                
+                <p class="instruction-text">
+                    이메일 주소(ID) <span class="user-id-highlight">${ id }</span> 의 새 비밀번호를 등록해주세요.
+                </p>
+
+                <form id="pwFrm" name="pwFrm" method="post" action="pw_update.do">
+                	<input type="hidden" id="uid" name="uid" value="${ id }">
+                    <div class="text-start">
+                        <label class="form-label">새 비밀번호</label>
+                        <input type="password" id="pw" name="pw" class="form-control custom-input">
+                    </div>
+                    
+                    <div class="text-start">
+                        <label class="form-label">새 비밀번호 확인</label>
+                        <input type="password" id="pwcheck" name="pwcheck" class="form-control custom-input" placeholder="비밀번호를 다시 입력해주세요.">
+                    </div>
+                    <!-- 비밀번호 변경시 alert로 변경완료 알림 -->
+                    <button type="button" class="btn btn-find" onclick="PwUpdate();">비밀번호 변경</button></a>
+                </form>
+
+                <a href="login.do" class="footer-link">로그인하러 가기</a>
+            </div>
+        </main>
+    </div>
+
+    <!-- 부트스트랩 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+package com.elms.service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.session.SqlSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.elms.vo.ApplyVO;
+import com.elms.vo.NoticeVO;
+import com.elms.vo.SearchVO;
+import com.elms.vo.SubjectVO;
+import com.elms.vo.SubmissionVO;
+import com.elms.vo.TaskVO;
+import com.elms.vo.UserVO;
+
+@Service
+public class StudentService {
+
+	@Autowired
+	private SqlSession session;
+	
+	private static final String namespace = "elms.student";
+	
+	public boolean PwMatch(String id, String pw) {
+		UserVO vo = new UserVO();
+		vo.setUid(id);
+		vo.setPw(pw);
+		int match = session.selectOne(namespace + ".match", vo);
+		if( match != 0) {
+			return true;
+		}
+		return false;
+	}
+	
+	
+	public UserVO UserInfo(UserVO vo) {
+		UserVO UserInfo = session.selectOne(namespace + ".info", vo);
+		
+		return UserInfo;
+	}
+	
+	public void InfoUpdate(String id, String hp, String pw) {
+		UserVO vo = new UserVO();
+		vo.setUid(id);
+		vo.setHp(hp);
+		vo.setPw(pw);
+		session.update(namespace + ".update", vo);
+		
+	}
+	
+	//과목 리스트 전체 출력
+	public List<SubjectVO> SubjectList(int uno, int start, int perPage, String kind) {
+		
+		Map<String, Object> params = new HashMap<String, Object>();
+	    params.put("uno", uno);
+	    params.put("start", start);
+	    params.put("perPage", perPage);
+	    params.put("kind", kind);		
+		
+		return session.selectList(namespace + ".selectlist", params);	 		
+	}
+	
+	//전체 과목 수 조회
+	public int SubjectCount(int uno, int start, int perPage, String kind) {
+		
+		Map<String, Object> params = new HashMap<String, Object>();
+	    params.put("uno", uno);
+	    params.put("start", start);
+	    params.put("perPage", perPage);
+	    params.put("kind", kind);		
+		
+		return session.selectOne(namespace + ".subjecttotal", params);
+	}
+	
+	//내가 수강 신청한 과목 조회
+	public List<ApplyVO> MyApplyList(int uno){
+		return session.selectList(namespace + ".myapplylist", uno);
+	}
+	
+	//수강 신청 인원 초과 시 수강 신청을 막기 위한 단건 조회
+	public SubjectVO SubjectSelectOne(int sno) {
+		return session.selectOne(namespace + ".subjectselectone", sno);
+	}
+	
+	//수강 신청 학생 수 조회
+	public int ApplySelect(int uno) {
+		return session.selectOne(namespace + ".applyselect", uno);
+	}
+	
+	//내가 수강 신청한 과목 수 조회
+	public int MyApplyOne(int uno) {
+		return session.selectOne(namespace + ".myapplyselect", uno);
+	}
+	
+	//수강 신청 처리
+	public int SubjectApply(int uno, int sno) {
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("uno", uno);
+		params.put("sno", sno);
+		return session.insert(namespace + ".subjectapply", params);
+	}
+	
+	//수강 신청 취소 처리
+	public int ApplyDelete(int uno, int sno) {
+		
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("uno", uno);
+		params.put("sno", sno);
+		
+		return session.delete(namespace + ".applydelete", params);
+	}
+	
+	//나의 과제 조회
+	public List<TaskVO> TaskList(int uno, int sno, int start, int perPage, String kind, String key){
+		
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("uno", uno);
+		params.put("sno", sno);
+		params.put("start", start);
+	    params.put("perPage", perPage);
+	    params.put("kind", kind);
+	    params.put("key", key);
+		
+		return session.selectList(namespace + ".tasklist", params);
+	}
+	
+	//내가 제출한 과제 리스트 조회(제출 사항 화면 확인용)
+	public List<SubmissionVO> SubmissionList(int uno){
+		
+		return session.selectList(namespace + ".submissionlist", uno);
+	}
+	
+	//내가 제출한 과제 갯수 조회(페이징)
+	public int TaskCount(int uno, int sno, int start, int perPage, String kind, String key) {
+		
+		Map<String, Object> params = new HashMap<String, Object>();
+	    params.put("uno", uno);
+	    params.put("sno", sno);
+	    params.put("start", start);
+	    params.put("perPage", perPage);
+	    params.put("kind", kind);
+	    params.put("key", key);
+	    
+	    return session.selectOne(namespace + ".tasktotal", params);
+	    
+	}
+	//내가 선택한 과목의 과제 단건 상세 조회
+	public TaskVO TaskInfo(int tno) {
+		return session.selectOne(namespace + ".taskinfo", tno);
+	}
+	
+	//수강 신청 여부 체크
+	public int SubjectApplyCheck(int uno, int tno) {
+		
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("uno", uno);
+		params.put("tno", tno);
+		return session.selectOne(namespace + ".subjectapplycheck", params);
+	}
+	
+	//내가 선택한 과제 제출하기
+	public boolean SubmissionInsert(int uno, int tno, SubmissionVO vo) {
+		
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("uno", uno);
+		params.put("tno", tno);
+		params.put("title", vo.getTitle());
+		params.put("content", vo.getContent());
+		params.put("pname", vo.getPname());
+		params.put("fname", vo.getFname());
+		
+		
+		session.insert(namespace + ".submissionwrite", params);
+		return true;
+	}
+	
+	//내가 제출한 과제 조회
+	public SubmissionVO SubmissionInfo(int uno, int tno) {
+		
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("uno", uno);
+		params.put("tno", tno);
+		return session.selectOne(namespace + ".submissionviewone", params);
+	}
+	
+	//내가 제출한 과제의 파일 또는 피드백 파일 다운로드를 위한 단건 조회
+	public SubmissionVO SubmissionDownInfo(int smno) {
+		return session.selectOne(namespace + ".submissiondownview", smno);
+	}
+	
+	public int SubmissionUpdate(SubmissionVO vo) {
+		return session.update(namespace + ".submissionupdate", vo);
+	}
+	
+}

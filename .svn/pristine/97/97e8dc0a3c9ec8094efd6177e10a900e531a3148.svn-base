@@ -1,0 +1,64 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ include file="../../include/admin/head.jsp" %>
+<script>
+	function DoDelete() {
+		if( confirm("삭제하시겠습니까?") == true ){
+			document.location = "delete.do?no=" + ${ notice.nno };
+		}
+		return;
+	}
+</script>	
+  <div class="main-container">
+        <aside>
+            <div class="side-menu-top">
+                <a href="../notice/list.do" class="menu-item active">공지사항</a>
+                <a href="../teacher/list.do" class="menu-item">교수 관리</a>
+                <a href="../student/list.do" class="menu-item">학생 관리</a>
+            </div>
+        </aside>
+		<!-- 본문 내용 -->
+        <main>
+            <div class="content-header">
+                <h2 id="title" name="title" class="view-title">${ notice.title }</h2>
+                <nav aria-label="breadcrumb">
+                    <div class="breadcrumb">
+                       <a href="list.do"> 공지사항 &nbsp; </a> > &nbsp;  <span>공지보기</span>
+                    </div>
+                </nav>
+            </div>
+
+            <div class="view-meta">
+                <span><b>번호</b> ${ notice.nno }</span>
+                <span><b>작성일</b> ${ notice.wdate }</span>
+                <span><b>작성자</b> 관리자</span>
+            </div>
+            
+            <hr class="view-divider">
+
+            <div id="content" name="content" class="view-content">
+                ${ notice.HTML }<br>
+            </div>
+			
+			<div class="attachment-bar">
+	            <c:choose>
+					<c:when test="${ notice.fname != null and !notice.fname.equals('') }">
+						${ notice.fname }
+						<a href="down.do?no=${ notice.nno }"><button class="btn-download">다운로드</button></a>
+					</c:when>
+					<c:otherwise>
+						등록된 첨부파일이 없습니다.
+					</c:otherwise>
+				</c:choose>
+            </div>
+
+            <div class="view-footer">
+                <button type="button" class="btn-list" onclick="document.location='list.do?kind=${ kind }&key=${ key }&page=${ pageno }'">목록으로</button>&nbsp;&nbsp;
+                <button class="btn-apply" onclick="document.location='update.do?no=${ notice.nno }'">수정</button>&nbsp;&nbsp;
+                <button class="btn-delete" onclick="DoDelete();">삭제</button>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+package com.elms.vo;
+
+public class SearchVO 
+{
+	private int    pageno; //현재 페이지 번호
+	private int    offset; //limit 시작 번호
+	private String kind;   //1:제목,2:제목+내용
+	private String key;    //검색 키워드
+	
+	public int    getPageno() {	return pageno; }
+	public int    getOffset() { return offset; }
+	public String getKind()   { return kind;   }
+	public String getKey()    { return key;    }
+	
+	public void setPageno(int pageno) 
+	{	
+		this.pageno = pageno; 
+		this.offset = (pageno - 1) * 10;
+	}
+	public void setKind(String kind) { this.kind = kind; }
+	public void setKey(String key)   { this.key = key;   }
+}

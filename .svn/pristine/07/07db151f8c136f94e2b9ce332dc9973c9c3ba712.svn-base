@@ -1,0 +1,93 @@
+package com.elms.service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.session.SqlSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.elms.vo.ApplyVO;
+import com.elms.vo.SearchVO;
+import com.elms.vo.SubjectVO;
+import com.elms.vo.UserVO;
+
+@Service
+public class StudentService {
+
+	@Autowired
+	private SqlSession session;
+	
+	private static final String namespace = "elms.student";
+	
+	public boolean PwMatch(String id, String pw) {
+		UserVO vo = new UserVO();
+		vo.setUid(id);
+		vo.setPw(pw);
+		int match = session.selectOne(namespace + ".match", vo);
+		if( match != 0) {
+			return true;
+		}
+		return false;
+	}
+	
+	
+	public UserVO UserInfo(UserVO vo) {
+		UserVO UserInfo = session.selectOne(namespace + ".info", vo);
+		
+		return UserInfo;
+	}
+	
+	public void InfoUpdate(String id, String hp, String pw) {
+		UserVO vo = new UserVO();
+		vo.setUid(id);
+		vo.setHp(hp);
+		vo.setPw(pw);
+		session.update(namespace + ".update", vo);
+		
+	}
+	
+	//과목 리스트 전체 출력
+	public List<SubjectVO> SubjectSelect(Map<String, Object> map) {
+		return session.selectList(namespace + ".selectlist", map);	 		
+	}
+	
+	//전체 과목 수 조회
+	public int SubjectCount(Map<String, Object> map) {
+		return session.selectOne(namespace + ".total", map);
+	}
+	
+	//내가 수강 신청한 과목 조회
+	public List<ApplyVO> ApplySelect(int uno){
+		return session.selectList(namespace + ".myapplylist", uno);
+	}
+	
+	//수강 신청 학생 수 조회
+	public int ApplyOne(int uno) {
+		return session.selectOne(namespace + ".applyselect", uno);
+	}
+	
+	//내가 수강 신청한 과목 수 조회
+	public int MyApplyOne(int uno) {
+		return session.selectOne(namespace + ".myapplyselect", uno);
+	}
+	
+	//수강 신청 처리
+	public int SubjectApply(int uno, int sno) {
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("uno", uno);
+		params.put("sno", sno);
+		return session.insert(namespace + ".subjectapply", params);
+	}
+	
+	//수강 신청 취소 처리
+	public int ApplyDelete(int uno, int sno) {
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("uno", uno);
+		params.put("sno", sno);
+		return session.delete(namespace + ".applydelete", params);
+	}
+	
+	
+}

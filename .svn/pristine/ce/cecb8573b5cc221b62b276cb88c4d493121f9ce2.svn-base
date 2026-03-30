@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="elms.teacher">
+	<select id="match" parameterType="com.elms.vo.UserVO" resultType="java.lang.Integer">
+		select count(*) from user 
+		where uid = #{uid} and pw = md5(#{pw})
+	</select>
+	
+	<select id="info" parameterType="com.elms.vo.UserVO" resultType="com.elms.vo.UserVO">
+		select * from user where uid = #{uid}
+	</select>
+	
+	<update id="infoupdate" parameterType="com.elms.vo.UserVO">
+		update user 
+		set hp = #{hp}, pw = md5(#{pw}) 
+		where uid = #{uid}
+	</update>
+	
+	<select id="snamecheck" parameterType="java.lang.String" resultType="java.lang.Integer">
+		select count(*) from subject where sname = #{sname}
+	</select>
+	
+	<insert id="subjectupdate" parameterType="com.elms.vo.SubjectVO" useGeneratedKeys="true" keyProperty="sno">
+		insert into subject(sno, sname, astart, aend, sstart, send, cnt, uno) values(#{sno}, #{sname}, #{astart}, #{aend}, #{sstart}, #{send}, #{cnt}, #{uno}) 
+	</insert>
+	
+	<select id="subjectlist" parameterType="java.lang.Integer" resultType="com.elms.vo.SubjectVO">
+		select sno, sname, date(astart) as astart, date(aend) as aend, date(sstart) as sstart, date(send) as send, cnt
+		from subject
+		where uno = #{uno}
+		order by sno desc;
+	</select>
+</mapper>

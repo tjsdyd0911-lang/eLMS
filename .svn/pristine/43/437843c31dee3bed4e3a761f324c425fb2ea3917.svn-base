@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="elms.student">
+	<select id="match" parameterType="com.elms.vo.UserVO" resultType="java.lang.Integer">
+		select count(*) from user 
+		where uid = #{uid} and pw = md5(#{pw})
+	</select>
+	
+	<select id="info" parameterType="com.elms.vo.UserVO" resultType="com.elms.vo.UserVO">
+		select * from user where uid = #{uid}
+	</select>
+	
+	<update id="update" parameterType="com.elms.vo.UserVO">
+		update user 
+		set hp = #{hp}, pw = md5(#{pw}) 
+		where uid = #{uid}
+	</update>
+	
+	<!-- 과목 전체 조회 -->
+	<select id="selectlist" parameterType="map" resultType="com.elms.vo.SubjectVO">
+		select s.sno, s.sname, s.uno, s.cnt,
+			u.name as uname, 
+			date_format(s.astart, '%Y-%m-%d') as astart, 
+	        date_format(s.aend, '%Y-%m-%d') as aend, 
+	        date_format(s.sstart, '%Y-%m-%d') as sstart, 
+	        date_format(s.send, '%Y-%m-%d') as send,
+	        (select count(*) from apply where sno = s.sno) as applycnt		
+ 		from subject s
+ 		left join user u on s.uno = u.uno
+ 		where s.sno not in(select sno from apply where uno = #{uno})
+ 		
+ 		<if test="kind == 'usable'">
+ 			and date_format(s.astart, '%Y%m%d') &lt;= date_format(now(), '%Y%m%d')
+ 			and date_format(s.aend, '%Y%m%d') &gt;= date_format(now(), '%Y%m%d')
+ 		</if>
+ 		<if test="kind == 'closed'">
+ 			and date_format(s.aend, '%Y%m%d') &lt; date_format(now(), '%Y%m%d')
+ 		</if>
+ 		<if test="kind == 'upcoming'">
+ 			and date_format(s.astart, '%Y%m%d') &gt; date_format(now(), '%Y%m%d')
+ 		</if>
+ 		group by s.sno
+ 		order by s.sno desc
+ 		limit #{start}, #{perPage}
+	</select>
+	
+	<!-- 내가 신청한 과목 갯수 조회 -->
+	<select id="subjecttotal" parameterType="map" resultType="int">
+		select count(*) from subject s
+		where s.sno not in
+			(select sno from apply where uno = #{uno})
+		<if test="kind == 'usable'">
+ 			and date_format(s.astart, '%Y%m%d') &lt;= date_format(now(), '%Y%m%d')
+ 			and date_format(s.aend, '%Y%m%d') &gt;= date_format(now(), '%Y%m%d')
+ 		</if>
+ 		<if test="kind == 'closed'">
+ 			and date_format(s.aend, '%Y%m%d') &lt; date_format(now(), '%Y%m%d')
+ 		</if>
+ 		<if test="kind == 'upcoming'">
+ 			and date_format(s.astart, '%Y%m%d') &gt; date_format(now(), '%Y%m%d')
+ 		</if>
+	</select>
+	
+	<!-- 내가 신청한 과목 조회 -->
+	<select id="myapplylist" parameterType="int" resultType="com.elms.vo.SubjectVO">
+		select s.sno, s.sname, s.uno,
+		u.name as uname, t.tno,
+		date_format(s.astart, '%Y-%m-%d') as astart, 
+        date_format(s.aend, '%Y-%m-%d') as aend, 
+        date_format(s.sstart, '%Y-%m-%d') as sstart, 
+        date_format(s.send, '%Y-%m-%d') as send
+        from subject s
+        left join user u on s.uno = u.uno
+		inner join apply a on s.sno = a.sno
+		left join task t on s.sno = t.sno
+		where a.uno = #{uno}
+	</select>
+	
+	<!-- 전체 수강 신청한 학생 수 조회 -->
+	<select id="applyselect" parameterType="java.lang.Integer" resultType="int">
+		select count(uno) from apply where uno = #{uno} and sno = #{sno}
+	</select>
+	
+	<!-- 내가 수강 신청한 과목 수 조회 -->
+	<select id="myapplyselect" parameterType="java.lang.Integer" resultType="int">
+		select count(uno) from apply where uno = #{uno}
+	</select>
+	
+	<!-- 내가 수강 신청한 과목 조회 -->
+	<select id="myapplysubject" parameterType="java.lang.Integer" resultType="com.elms.vo.ApplyVO">
+		select * from apply where uno = #{uno}
+	</select>
+	
+	<!-- 수강 신청 처리 -->
+	<insert id="subjectapply" parameterType="map" useGeneratedKeys="true" keyProperty="ano">
+		insert into apply(uno, sno) values(#{uno}, #{sno})
+	</insert>
+	
+	<!-- 수강 신청 취소 처리 -->
+	<delete id="applydelete" parameterType="map">
+		delete from apply where uno = #{uno} and sno = #{sno}
+	</delete>
+	
+	<!-- 내가 수강 신청한 과제 조회 -->
+	<select id="tasklist" parameterType="map" resultType="com.elms.vo.TaskVO">
+		select t.tno, t.sno, t.title, t.content, t.stype,
+		t.ttype, t.pname, t.fname, t.wdate, s.sname,
+		date_format(t.edate, '%Y-%m-%d') as edate,
+		sm.scheck, sm.score	from task t
+		inner join subject s on t.sno = s.sno
+		inner join apply a on s.sno = a.sno
+		left join submission sm on t.tno = sm.tno and sm.uno = #{uno}
+		where a.uno = #{uno}
+		<if test='!key.equals("")'>
+			and t.title like '%${ key }%'
+		</if>
+		<if test="kind == 'unsubmitted'">
+			and sm.smno is null
+		</if>
+		<if test="kind == 'submitted'">
+			and sm.scheck = 'N'
+		</if>
+		<if test="kind == 'graded'">
+			and sm.scheck = 'Y'
+		</if>
+		<if test="sno != 0">
+			and t.sno = #{sno}
+		</if>
+		order by t.tno desc
+		limit #{start}, #{perPage}
+	</select>
+	
+	<!-- 내 과제 제출 여부 조회 -->
+	<select id="submissionlist" parameterType="int" resultType="com.elms.vo.SubmissionVO">
+		select sm.smno, sm.title, sm.pname, sm.fname,
+		sm.content, sm.scheck, sm.score, sm.feedback,
+		sm.fpname, sm.ffname, sm.uno, sm.tno,
+		date_format(sm.smdate, '%Y-%m-%d') as smdate
+		from submission sm
+		inner join user u on sm.uno = u.uno
+		inner join task t on sm.tno = t.tno
+		where sm.uno = #{uno}
+	</select>
+	
+	<!-- 내가 신청한 과목의 과제 갯수 조회 -->
+	<select id="tasktotal" parameterType="map" resultType="int">
+		select count(*) from task t
+		where t.sno in (
+			select a.sno from apply a
+			where a.uno = #{uno}
+		)
+		<if test="kind == 'unsubmitted'">
+ 			and not exists (
+ 				select * from submission sm
+ 				where sm.tno = t.tno and sm.uno = #{uno}
+ 			)
+ 		</if>
+ 		<if test="kind == 'submitted'">
+ 			and exists (
+ 				select * from submission sm
+ 				where sm.tno = t.tno
+ 				and sm.uno = #{uno}
+ 				and sm.scheck = 'N'
+ 			) 			
+ 		</if>
+ 		<if test="kind == 'graded'">
+ 			and exists (
+ 				select * from submission sm
+ 				where sm.tno = t.tno
+ 				and sm.uno = #{uno}
+ 				and sm.scheck = 'Y' 				
+ 			) 			
+ 		</if>
+	</select>
+	
+	<!-- 과제 단건 상세 조회 -->
+	<select id="taskinfo" parameterType="int" resultType="com.elms.vo.TaskVO">
+		select t.tno, t.sno, t.title, t.content, t.stype,
+		t.ttype, t.pname, t.fname, t.wdate, s.sname,
+		date_format(edate, '%Y-%m-%d') as edate
+		from task t
+		inner join subject s on t.sno = s.sno 
+		where t.tno = #{tno}
+	</select>
+	
+	<!-- 내가 선택한 과제 제출하기 -->
+	<insert id="submissionwrite" parameterType="map"
+		useGeneratedKeys="true" keyProperty="smno">
+		insert into submission
+		(uno, tno, title, content, smdate, scheck, score, feedback, pname, fname)
+		values
+		(#{uno}, #{tno}, #{title}, #{content}, now(), 'N', '', '',
+		<if test='fname != null and !fname.equals("")'>
+			#{pname}, #{fname}
+		</if>
+		<if test='fname == null or fname.equals("")'>
+			null, null
+		</if>
+		)
+	</insert>
+	
+	<select id="submissionviewone" parameterType="map" resultType="com.elms.vo.SubmissionVO">
+		select sm.*, u.name, u.num, s.sname,
+		t.title as ttitle from submission sm
+		inner join user u on sm.uno = u.uno
+		inner join task t on sm.tno = t.tno
+		inner join subject s on t.sno = s.sno
+		where sm.uno = #{uno} and sm.tno = #{tno}
+	</select>
+	
+	<select id="submissiondownview" parameterType="int" resultType="com.elms.vo.SubmissionVO">
+		select * from submission where smno = #{smno}
+	</select>
+	
+</mapper>

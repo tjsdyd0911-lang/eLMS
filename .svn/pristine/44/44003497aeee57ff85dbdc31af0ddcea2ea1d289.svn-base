@@ -1,0 +1,149 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ include file="../../include/teacher/head.jsp" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+    <div class="main-container">
+      <aside>
+        <div class="side-menu-top">
+         	<a href="../notice/list.do" class="menu-item">공지사항</a>
+            <a href="../subject/list.do" class="menu-item">과목 관리</a>
+            <a href="list.do?sno=${sno}&sname=${title}" onclick="if(${sno == 0}) { alert('과목 또는 과제관리 버튼을 눌러주세요.'); return false;}" class="menu-item active">과제 게시판</a>
+        </div>
+		<%@ include file="../../include/teacher/side.jsp" %>           
+      </aside>
+<form id="frmSlist" name="frmSlist" method="post" action="slist.do">
+	<input type="hidden" id="sno" name="sno">
+	<input type="hidden" id="tno" name="tno">
+	<input type="hidden" id="applynow" name="applynow">
+	<input type="hidden" id="title" name="title">
+	<input type="hidden" id="ttype" name="ttype">
+	<input type="hidden" id="sname" name="sname" value="${title}">
+</form>
+		<main>
+<script>
+	window.onload = function()
+	{
+		$("td > #spanType").each(function(index, element) 
+		{
+			type = $(element).text().trim();
+			switch(type)
+			{
+				case "수시과제": $(element).addClass("badge-pill bg-gray");       break;
+				case "중간과제": $(element).addClass("badge-pill bg-green-dark"); break;
+				case "기말과제": $(element).addClass("badge-pill bg-orange");     break;
+			}					
+		});
+	}
+	
+	function GoSlist(obj) {
+		const tno = $(obj).data("tno");
+	    const sno = $(obj).data("sno");
+	    const applynow = $(obj).data("applynow");
+	    const title = $(obj).data("title");
+	    const ttype = $(obj).data("ttype");
+
+	    $("#tno").val(tno);
+	    $("#sno").val(sno);
+	    $("#applynow").val(applynow);
+	    $("#title").val(title);
+	    $("#ttype").val(ttype);
+
+	    $("#frmSlist").submit();
+	}
+</script>
+			<!-- 1. 페이지 제목 -->
+			<div
+				class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-2 border-dark">
+				<h2 class="m-0 fw-bold text-dark">과제 게시판</h2>
+				<button class="btn-batch-approve" onclick="document.location='write.do?sno=${sno}&sname=${title}'">
+					<i class="fa-solid fa-plus me-1"></i> 과제 등록
+				</button>
+			</div>
+			<div class="divider"></div>
+	
+			<!-- 2. 서브 헤더 (과목명 + 등록 버튼) -->
+			<div class="d-flex justify-content-between align-items-center">
+				<h4 class="sub-title">${ title }</h4>
+	
+			</div>
+			<br>
+	
+			<!-- 3. 테이블 영역 -->
+			<div class="table-responsive">
+				<table class="table custom-table">
+					<colgroup>
+						<col style="width: 10%;">
+						<!-- 구분 -->
+						<col style="width: 35%;">
+						<!-- 과제명 -->
+						<col style="width: 15%;">
+						<!-- 제출 현황 -->
+						<col style="width: 15%;">
+						<!-- 마감일 -->
+						<col style="width: 10%;">
+						<!-- 채점 -->
+						<col style="width: 15%;">
+						<!-- 학생 및 채점현황 -->
+					</colgroup>
+					<thead>
+						<tr>
+							<th>구분</th>
+							<th>과제명</th>
+							<th>제출 현황</th>
+							<th>마감일</th>
+							<th>채점 현황</th>
+							<th>학생 관리</th>
+						</tr>
+					</thead>
+					<tbody>
+						<c:forEach var="list" items="${ list }">
+							<tr>
+								<td><span id="spanType">${list.ttypeName}</span></td>
+								<!-- 
+								<c:if test="${fn:trim(list.ttype) == '수시과제'}">
+									<td><span class="badge-pill bg-gray">수시과제</span></td>
+								</c:if>
+								<c:if test="${fn:trim(list.ttype) == '중간과제'}">
+									<td><span class="badge-pill bg-green-dark">중간과제</span></td>
+								</c:if>
+								<c:if test="${fn:trim(list.ttype) == '기말과제'}">
+									<td><span class="badge-pill bg-orange">기말과제</span></td>
+								</c:if>
+								 -->
+								<td><a href="view.do?tno=${list.tno}&sname=${title}">${ list.title }</a></td>
+								<td>${ list.submitcount } / ${ list.applynow }</td>
+								<td>${ list.edate }</td>
+								<td>${ list.scorecount } / ${ list.applynow }</td>
+								<td><button class="btn-batch-approve" onclick="GoSlist(this);" data-tno="${list.tno}" 
+																							   data-sno="${list.sno}"
+																							   data-applynow="${list.applynow}"
+																							   data-title="${list.title}"
+																							   data-ttype="${list.ttype}">보기</button></td>
+							</tr>
+						</c:forEach>
+					</tbody>
+				</table>
+			</div>
+	
+			<!-- 4. 페이지네이션 -->
+			<div class="pagination gap-2" style="text-align: center;">
+				<c:if test="${ startbk != 1 }">
+					<a href="list.do?sno=${sno}&sname=${title}&page=${ startbk - 2 }" class="page-num">◀</a>
+				</c:if> 
+				<c:forEach var="page" begin="${startbk}" end="${endbk}">
+					<c:if test="${ page == pageno }">
+						<a href="list.do?sno=${sno}&sname=${title}&page=${ page }" class="page-num active">${ page }</a>
+					</c:if>
+					<c:if test="${ page != pageno }">
+						<a href="list.do?sno=${sno}&sname=${title}&page=${ page }" class="page-num">${ page }</a>
+					</c:if>				
+				</c:forEach> 
+				<c:if test="${ endbk < maxpage }">
+					<a href="list.do?sno=${sno}&sname=${title}&page=${ endbk + 1 }" class="page-num">▶</a>
+				</c:if>
+			</div>
+	
+		</main>
+	</div>
+</body>
+</html>

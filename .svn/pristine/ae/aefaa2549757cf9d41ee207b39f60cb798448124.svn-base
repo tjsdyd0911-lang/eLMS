@@ -1,0 +1,413 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ include file="../../include/teacher/head.jsp" %>
+    <div class="main-container">
+      <aside>
+        <div class="side-menu-top">
+         	<a href="../notice/list.do" class="menu-item">공지사항</a>
+            <a href="../subject/list.do" class="menu-item">과목 관리</a>
+            <a href="../task/list.do?tno=${vo.tno}&sno=${vo.sno}&sname=${sname}" class="menu-item active">과제 게시판</a>
+        </div>
+<%@ include file="../../include/teacher/side.jsp" %>           
+      </aside>
+<form id="frmReload" name="frmReload" method="post" action="slist.do">
+	<input type="hidden" id="resno" name="sno" value="${vo.sno}">
+	<input type="hidden" id="retno" name="tno" value="${vo.tno}">
+	<input type="hidden" id="reapplynow" name="applynow" value="${vo.applynow}">
+	<input type="hidden" id="retitle" name="title" value="${vo.title}">
+	<input type="hidden" id="rettype" name="ttype" value="${vo.ttype}">
+	<input type="hidden" id="resname" name="sname" value="${vo.sname}">
+	<input type="hidden" id="page" name="page" value="1">
+</form>
+<script>
+	window.onload = function()
+	{
+		$("li > #spanType").each(function(index, element) 
+		{
+			type = $(element).text().trim();
+			switch(type)
+			{
+				case "제출완료": $(element).addClass("task-badge-submitted"); break;
+				case "미제출": $(element).addClass("task-badge-missing"); break;
+			}					
+		});
+	}
+	
+	var prevObj = null;
+	var uploadPath = "${pageContext.request.contextPath}";
+	function LoadTask(obj) {
+		prevObj = obj;
+		
+	    // 1. UI 처리: 클릭한 항목 활성화
+	    $(".task-student-item").removeClass("active");
+	    $(obj).addClass("active");
+	    
+		 // [추가] 1-1. 기존 데이터 초기화 (새로운 데이터를 불러오기 전 깨끗하게 비움)
+	    // 텍스트 비우기
+	    $("#loadTitle, #loadMeta, #loadContent, #loadFname, #previewFname").text(""); 
+	    // 입력창/숨겨진 값 비우기
+	    $("#smno, #feedback, #stypeName, #stype").val("");
+	    $("#scoreContainer").empty(); // 점수 입력 영역 비우기
+	    $("#fileArea").hide();        // 파일 영역 일단 숨김
+	    $("#pdfFrame").attr("src", ""); // PDF 미리보기 초기화
+	    $("#btn-submit").show(); //채점 버튼 표시
+	    
+	    // [추가] 1-2. 스크롤을 최상단으로 이동
+	    $(".task-modal-grading-area").scrollTop(0);
+
+	    // 2. 데이터 추출
+	    const uno = $(obj).data("uno");
+	    const tno = $(obj).data("tno");
+
+	    // 3. AJAX 요청
+	    $.ajax({
+	        url: "load_task.do",
+	        type: "POST",
+	        data: { uno: uno, tno: tno },
+	        dataType: "json", // 서버에서 JSON으로 보내줘야 함
+	        success: function(data) {
+	            if(data) {
+	                // 우측 영역 데이터 매핑
+	                // 학생영역
+	                $("#loadTitle").text(data.title);
+	                $("#loadMeta").text("제출일: " + data.smdate + " | 제출자: " + data.name + "(" + data.num + ")");
+	                $("#loadContent").html(data.content);
+	                $("#smno").val(data.smno);
+	                $("#btn-submit").show(); //채점 버튼 표시
+	            	// 교사영역(채점)
+	            	// 기존 피드백이 있다면 세팅
+	                if(data.score && data.score !== '0') {
+	                	$("#feedback").val(data.feedback);
+	                }
+	                $("#stypeName").val(data.stypeName);
+	                $("#stype").val(data.stype);
+	                
+	                const $container = $("#scoreContainer");
+	                
+	                if (data.stype == '01') {
+	                    // [백분율 점수] -> 텍스트 입력창
+	                    $container.html('<input type="text" class="form-control task-input" id="score" name="score" placeholder="0~100 입력">');
+	                    
+	                    // 실시간 유효성 검사 (0~100, 소수점 둘째자리)
+	                    $("#score").on("input", function() {
+	                        // 숫자와 소수점만 허용하는 정규식
+	                        let val = $(this).val().replace(/[^0-9.]/g, '');
+	                        
+	                        // 소수점이 두 번 들어가는 것 방지 및 둘째자리까지만 허용
+	                        const regex = /^\d{0,3}(\.\d{0,2})?$/;
+	                        if (!regex.test(val)) {
+	                            val = val.substring(0, val.length - 1);
+	                        }
+	                        
+	                        // 100 초과 방지
+	                        if (parseFloat(val) > 100) val = "100";
+	                        
+	                        $(this).val(val);
+	                    });
+
+	                }else {
+	                    // [Pass or False] -> Select 박스
+	                    let selectedP = (data.score == 'P') ? 'selected' : '';
+	                    let selectedF = (data.score == 'F') ? 'selected' : '';
+	                    
+	                    $container.html(`
+	                        <select class="form-select task-input" id="score" name="score">
+	                            <option value="">선택하세요</option>
+	                            <option value="P" ${selectedP}>Pass</option>
+	                            <option value="F" ${selectedF}>False</option>
+	                        </select>
+	                    `);
+	                }
+
+	                // 기존 점수가 있다면 세팅 (0은 비움)
+	                if(data.score && data.score !== '0') {
+	                    $("#score").val(data.score);
+	                }
+
+	                // 파일 처리
+	                if(data.fname) {
+	                    $("#fileArea").show();
+	                    $("#loadFname").text(data.fname);
+	                    $("#previewFname").text(data.fname);
+	                    $("#downLoad").on("click", function() {
+	                        location.href = 'down.do?smno=' + data.smno;
+	                    });
+	                    link = "down.do?type=view&smno=" + data.smno;
+	                    //alert(link);
+	                    $("#pdfFrame").attr("src", link); // PDF 경로
+	                    //link = "../../resources/sample.pdf";
+	                    //$("#pdfFrame").attr("src", link); // PDF 경로
+	                }else {
+	                    $("#fileArea").hide();
+	                }
+	            }else {
+	                // 제출 내역이 없는 경우 처리
+	                noSubmit();
+	            }
+	        },
+	        error: function() {
+	            alert("데이터를 가져오는 데 실패했습니다.");
+	        }
+	    });
+	}
+	
+	function noSubmit() {
+	    $("#loadTitle").text("미제출");
+	    $("#loadContent").text("제출된 내용이 없습니다.");
+	    $("#fileArea").hide();
+	    $("#score").val('');
+	    $("#feedback").val('');
+	    //미제출시 저장버튼 사라짐
+	    $("#btn-submit").hide();
+	}
+	
+	function DoScore() {
+		if( $("#score").val() == "" ){
+			alert("점수를 입력해주세요.");
+			return;
+		}
+		
+		if( $("#feedback").val() == "" ){
+			alert("피드백을 입력해주세요.");
+			return;
+		}
+		
+		 var form = $('#frmScore')[0]; 
+		 var formData = new FormData(form);
+		    
+		$.ajax({
+	        url: "score.do",
+	        type: "POST",
+	        data: formData,
+	        processData: false,
+	        contentType: false,
+	        success: function(data) {
+				if( data == "OK")
+				{
+					alert("저장하였습니다.");
+					LoadTask(prevObj);
+				} else if( data == "FAIL"){
+					alert("정보 갱신에 실패했습니다.");
+					LoadTask(prevObj);
+				}
+	        },
+	        error: function() {
+	            alert("채점을 실패했습니다.");
+	        }
+	    });
+	}
+	
+	function reLoad(){
+		$("#frmReload").submit();
+	}
+	
+	function goPage(page){
+		$("#page").val(page);
+		$("#frmReload").submit();
+	}
+</script>
+		<main>
+			<!-- 1. 페이지 제목 -->
+			<div class="content-header">
+				<h2 class="content-title">${vo.title}</h2>
+				<nav class="breadcrumb">
+					<div class="breadcrumb">
+						<a href="list.do?tno=${vo.tno}&sno=${vo.sno}&sname=${vo.sname}">과제 게시판  &nbsp; </a> >  &nbsp;<span>학생 및 채점현황</span>
+					</div>
+				</nav>
+			</div>
+			<br>
+			<!-- 2. 상단 상태바 (제목 + 브레드크럼) -->
+			<div style="text-align:right;">수강 학생 채점 현황 (총 ${vo.applynow}명)</div>
+
+
+			<!-- 3. 학생 목록 테이블 -->
+			<div class="table-responsive">
+				<table class="table task-custom-table table-hover">
+					<thead>
+						<tr>
+							<th style="width: 8%;">번호</th>
+							<th style="width: 15%;">학번</th>
+							<th style="width: 15%;">이름</th>
+							<th style="width: 20%;">학과</th>
+							<th style="width: 12%;">채점</th>
+							<th style="width: 30%;">점수</th>
+						</tr>
+					</thead>
+					<tbody>
+						<c:set var="totalCount" value="${fn:length(list)}" />
+						<c:forEach var="list" items="${list}" varStatus="status">
+							<tr>
+							<td>${totalCount - status.index}</td>
+							<td>${list.num}</td>
+							<td>${list.name}</td>
+							<td>${list.majorName}</td>
+							<td><button class="btn-batch-approve" data-bs-toggle="modal" data-bs-target="#gradingModal" onclick="LoadTask(this);" data-uno="${list.uno}" 
+																																				  data-tno="${list.tno}">채점</button></td>
+							<c:choose>
+								<c:when test="${list.score == 'F'}"><td><span class="task-score-text" style="color:red;font-weight:bold;">FALSE</span></td></c:when>	
+								<c:when test="${list.score == 'P'}"><td><span class="task-score-text" style="color:blue;font-weight:bold;">PASS</span></td></c:when>	
+							<c:otherwise>							
+								<td><span class="task-score-text">${list.score}</span></td>
+							</c:otherwise>
+							</c:choose>
+							</tr>
+						</c:forEach>
+					</tbody>
+				</table>
+			</div>
+
+			<!-- 4. 페이지네이션 -->
+			<div class="pagination gap-2" style="text-align: center;">
+				<c:if test="${ startbk != 1 }">
+					<a href="javascript:goPage('${ startbk - 2 }');" class="page-num">◀</a>
+				</c:if> 
+				<c:forEach var="page" begin="${startbk}" end="${endbk}">
+					<c:if test="${ page == pageno }">
+						<a href="javascript:goPage('${ page }');" class="page-num active">${ page }</a>
+					</c:if>
+					<c:if test="${ page != pageno }">
+						<a href="javascript:goPage('${ page }');" class="page-num">${ page }</a>
+					</c:if>				
+				</c:forEach> 
+				<c:if test="${ endbk < maxpage }">
+					<a href="javascript:goPage('${ endbk + 1 }');" class="page-num">▶</a>
+				</c:if>
+			</div>
+
+			<!-- 5. 하단 버튼 영역 -->
+			<div
+				class="task-footer-btns d-flex justify-content-center gap-3 mt-4">
+				<button class="btn-green"
+					onclick="document.location='../subject/list.do'">과목관리</button>
+				<button class="btn-green" onclick="document.location='list.do?sno=${vo.sno}&sname=${vo.sname}'">과제게시판</button>
+			</div>
+		</main>
+	</div>
+
+	<!-- [MODAL] 채점 및 피드백 모달 -->
+	<div class="modal fade" id="gradingModal" tabindex="-1" aria-labelledby="gradingModalLabel" data-bs-keyboard="false" aria-hidden="true">
+		<div class="modal-dialog modal-xl modal-dialog-centered">
+			<div class="modal-content task-modal-content">
+				<!-- 모달 헤더: 제목 표시 -->
+				<div class="modal-header border-0 pb-0">
+					<h4 class="modal-title" id="editModalLabel">과제 채점 및 피드백</h4>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="reLoad();"></button>
+				</div>
+				<div class="modal-body p-0">
+					<div class="d-flex task-modal-container">
+						<!-- [좌측] 학생 목록 영역 -->
+						<div class="task-modal-sidebar">
+							<div class="task-sidebar-header">학생 목록 (총 ${vo.applynow}명)</div>
+							<ul class="task-student-list">
+								<c:forEach var="list" items="${list}">
+									<li class="task-student-item active" onclick="LoadTask(this);" data-uno="${list.uno}"
+																								   data-tno="${list.tno}">
+										<div class="task-student-info">
+											<span class="task-student-name">${list.name} (${list.num})</span>
+										</div>
+										<span id="spanType">${list.submit}</span>
+									</li>
+								</c:forEach>
+							</ul>
+						</div>
+
+						<!-- [우측] 채점 상세 영역 -->
+						<div class="task-modal-grading-area">
+							<!-- 과제 정보 태그 -->
+							<div class="mb-2">
+								<span class="task-tag-blue">${vo.title}</span> <span class="task-tag-green">${vo.ttypeName}</span>
+							</div>
+							
+							<h4 class="task-modal-subject" id="loadTitle"></h4>
+							<p class="task-modal-meta" id="loadMeta"></p>
+
+							<!-- 학생 제출 내용 -->
+							<div class="task-submission-box" id="loadContent"></div>
+
+							<!-- 첨부 파일 바 -->
+							<div class="task-file-bar d-flex justify-content-between align-items-center" id="fileArea" style="display: none;">
+								<span class="task-file-name" id="loadFname"></span>
+								<div class="task-file-btns">
+									<button class="btn task-btn-outline" onclick="togglePdfPreview()">문서 미리보기</button>
+									<button class="btn task-btn-outline" id="downLoad" onclick="">다운로드</button>
+								</div>
+							</div>
+
+							<hr class="task-modal-divider">
+
+							<!-- [추가] PDF 미리보기 컨테이너 (기본은 display: none) -->
+							<div id="pdfPreviewContainer" class="task-pdf-preview-area" style="display: none;">
+								<div class="d-flex justify-content-between align-items-center bg-light p-2 border-bottom">
+									<span class="small fw-bold text-secondary" id="previewFname"><i class="fa-solid fa-eye me-1"></i></span>
+									<button type="button" class="btn-close small" style="font-size: 10px;" onclick="togglePdfPreview()"></button>
+								</div>
+								<!-- 실제 PDF가 출력되는 iframe -->
+								<iframe id="pdfFrame" src="" width="100%" height="450px"></iframe>
+							</div>
+
+							<!-- 채점 폼 -->
+							<form id="frmScore" name="frmScore" method="post" action="score.do" enctype="multipart/form-data">
+								<input type="hidden" id="smno" name="smno">
+								<input type="hidden" id="scheck" name="scheck" value="Y">
+								<h5 class="task-form-title">과제 채점 및 피드백</h5>
+								<div class="row g-3">
+									<div class="col-md-6">
+										<label class="task-label">점수 산정 방식</label>
+										<input type="text" class="form-control task-input-gray" id="stypeName" readonly>
+										<input type="hidden" id="stype" name="stype"> 
+									</div>
+									<div class="col-md-6">
+										<label class="task-label">최종 점수</label>
+										<div id="scoreContainer">
+											<input type="text" class="form-control task-input" id="score" name="score" placeholder="점수 입력">
+										</div>
+									</div>
+									<div class="col-12">
+										<label class="task-label">피드백</label>
+										<textarea class="form-control task-textarea" rows="3" id="feedback" name="feedback" placeholder="피드백 입력"></textarea>
+									</div>
+									<div class="col-12">
+										<label class="task-label">첨부 파일</label>
+										<div class="task-upload-box">
+											<input type="file" id="attach" name="attach">
+										</div>
+									</div>
+								</div>
+								<!-- 최종 저장 버튼 -->
+								<button type="button" id="btn-submit" class="btn task-btn-submit w-100 mt-4" onclick="DoScore();">평가 결과 저장 및 전송</button>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		function togglePdfPreview() {
+			const previewContainer = document
+					.getElementById('pdfPreviewContainer');
+			const pdfFrame = document.getElementById('pdfFrame');
+
+			// 현재 숨겨져 있으면 보이고, 보이고 있으면 숨김
+			if (previewContainer.style.display === 'none') {
+				previewContainer.style.display = 'block';
+				// iframe의 src를 다시 설정하여 로딩을 확실히 함 (필요시)
+				// pdfFrame.src = 'temp.pdf'; 
+			} else {
+				previewContainer.style.display = 'none';
+			}
+		}
+
+		// 모달이 닫힐 때 미리보기도 같이 닫히도록 설정 (Bootstrap 이벤트 활용)
+		const gradingModal = document.getElementById('gradingModal');
+		gradingModal.addEventListener('hidden.bs.modal', function() {
+			document.getElementById('pdfPreviewContainer').style.display = 'none';
+		});
+	</script>
+	<!-- [Bootstrap 5 JS Bundle] -->
+	<script
+		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

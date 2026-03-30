@@ -1,0 +1,54 @@
+/***********************************
+ * 클래스 : 회원정보 C/R/U/D 처리 클래스
+ * 작성자 : 박윤희
+ * 작성일 : 2026.02.04
+***********************************/
+package com.elms.service;
+
+import org.apache.ibatis.session.SqlSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.elms.vo.UserVO;
+
+@Service
+public class UserService {
+	
+	@Autowired
+	private SqlSession session;
+	
+	private static final String namespace = "elms.user";
+	
+	public UserVO Login(String uid, String pw)
+	{
+		UserVO vo = new UserVO();
+		vo.setUid(uid);
+		vo.setPw(pw);
+		
+		vo = session.selectOne(namespace + ".login",vo);
+		return vo;
+	}
+	
+	public void Join(UserVO vo)
+	{
+		session.insert(namespace + ".join",vo);
+	}
+	
+	public UserVO CheckID(String uid)
+	{
+		UserVO vo = new UserVO();
+		vo.setUid(uid);
+		vo = session.selectOne(namespace + ".checkid", vo);
+		
+		return vo;
+	}
+	
+	public UserVO CheckNum(String num)
+	{
+		UserVO vo = new UserVO();
+		vo.setNum(num);
+		vo = session.selectOne(namespace + ".checknum", vo);
+		
+		return vo;
+	}
+}

@@ -1,0 +1,52 @@
+/************************************
+ * 클래스 : 과목(subject) 테이블용 VO
+ * 작성자 : 박윤희
+ * 작성일 : 2026.02.03
+ * [2026.02.10]진선용
+ *     - 수정 내용 : applynow 추가
+ * ***********************************/
+package com.elms.vo;
+
+public class SubjectVO {
+	private int    sno;   	//과목번호 
+	private String sname;   //과목명
+	private String astart;  //수강신청시작일
+	private String aend;    //수강신청종료일
+	private String sstart;  //강의시작일
+	private String send;    //강의종료일
+	private String uname;	//교수명
+	private String applycnt;//수강신청인원
+	private int    cnt;     //수강가능인원
+	private int	   uno;		//사용자번호
+	private int	   applynow;//수강신청현황
+	private int	   tno;		//과제번호
+	
+	
+	
+	
+	public int getSno() 	   { return sno;     }
+	public String getSname()   { return sname;   }
+	public String getAstart()  { return astart;  }
+	public String getAend()    { return aend;    }
+	public String getSstart()  { return sstart;  }
+	public String getSend()    { return send;    }
+	public String getUname()   { return uname;   }
+	public String getApplycnt(){return applycnt; }
+	public int getCnt() 	   { return cnt;	 }
+	public int getUno() 	   { return uno;	 }
+	public int getApplynow()   { return applynow;}
+	public int getTno() 	   { return tno;	 }
+	
+	public void setSno(int sno) 		 	{ this.sno = sno; 		   }
+	public void setSname(String sname)   	{ this.sname = sname;	   }
+	public void setAstart(String astart) 	{ this.astart = astart;    }
+	public void setAend(String aend) 	 	{ this.aend = aend;	 	   }
+	public void setSstart(String sstart) 	{ this.sstart = sstart;    }
+	public void setSend(String send) 	 	{ this.send = send;	 	   }
+	public void setUname(String uname) 	 	{ this.uname = uname;	   }
+	public void setApplycnt(String applycnt){ this.applycnt = applycnt;}
+	public void setCnt(int cnt) 		 	{ this.cnt = cnt;		   }
+	public void setUno(int uno) 		 	{ this.uno = uno;		   }   
+	public void setApplynow(int applynow) 	{ this.applynow = applynow;}  
+	public void setTno(int tno) 			{ this.tno = tno;		   }
+}

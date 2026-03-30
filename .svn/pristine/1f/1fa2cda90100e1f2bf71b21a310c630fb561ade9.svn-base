@@ -1,0 +1,136 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ include file="../../include/teacher/head.jsp" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+    <div class="main-container">
+      <aside>
+        <div class="side-menu-top">
+         	<a href="../notice/list.do" class="menu-item">공지사항</a>
+            <a href="../subject/list.do" class="menu-item">과목 관리</a>
+            <a href="list.do?sno=${sno}" class="menu-item active">과제 게시판</a>
+        </div>
+			<%@ include file="../../include/teacher/side.jsp" %>
+		</aside>
+<script>
+	window.onload = function(){
+		$("#title").focus();
+	}
+	
+	function btnSubmit() {
+		if( $("#title").val().trim() == "" ){
+			alert("과제제목을 입력해주세요.");
+			$("#title").focus();
+			return;
+		}
+		
+		if( $("#content").val().trim() == "" ){
+			alert("내용을 입력해주세요.");
+			$("#content").focus();
+			return;
+		}
+		
+		if( $("#edate").val().trim() == "" ){
+			alert("제출마감일을 지정해주세요.");
+			return;
+		}
+		
+		// 오늘-제출마감일 비교
+		const edate = $("#edate").val();
+
+		// 날짜 객체로 변환
+		const edateDate = new Date(edate);    // 입력한 날짜
+		const today = new Date();              // 현재 날짜와 시간
+
+		// 시간을 00:00:00으로 초기화 (날짜만 비교하기 위함)
+		// 이걸 안 하면 '오늘'을 선택해도 '지금' 시간보다 이전으로 인식될 수 있습니다.
+		edateDate.setHours(0, 0, 0, 0);
+		today.setHours(0, 0, 0, 0);
+
+		if (edateDate < today) {
+		    alert("제출 마감일이 오늘보다 이전입니다.");
+		    return;
+		}
+
+		if(confirm("등록하시겠습니까?") == true){
+			$("#frmWrite").submit();	
+		}else{
+			return;
+		}
+	}
+</script>
+		<!-- [CONTENT] 본문 영역 -->
+		<main class="write_main">
+			<!-- 1. 페이지 헤더 -->
+			<div class="content-header">
+				<h2 class="content-title">신규 과제 등록</h2>
+				<nav aria-label="breadcrumb">
+					<div class="breadcrumb">
+						<a href="list.do?sno=${sno}">과제 게시판 &nbsp; </a> > &nbsp; <span>신규 과제 등록</span>
+					</div>
+				</nav>
+			</div>
+
+			<form id=frmWrite name="frmWrite" action="writeok.do" method="post" enctype="multipart/form-data">
+				<input type="hidden" id="sno" name="sno" value="${sno}">
+				<!-- 2. 과제 제목 -->
+				<div class="mb-4">
+					<label for="title" class="write_form-section-title">과제 제목</label>
+						<input type="text" class="form-control" id="title" name="title" placeholder="과제 제목을 입력해 주세요.">
+				</div>
+
+				<!-- 3. 과제 내용 -->
+				<div class="mb-4">
+					<label for="content" class="write_form-section-title">과제 내용</label>
+					<textarea class="form-control" id="content" name="content" rows="8" placeholder="과제에 대한 상세 설명 및 지시사항을 입력해 주세요."></textarea>
+				</div>
+
+				<!-- 4. 정보 입력 행 (마감일, 채점방식, 구분) -->
+				<div class="row write_info-row">
+					<div class="col-md-4">
+						<label for="ttype" class="write_form-section-title">구분</label>
+						<select class="form-select" id="ttype" name="ttype">
+							<option value="01" selected>중간과제</option>
+							<option value="02">기말과제</option>
+							<option value="03">수시과제</option>
+						</select>
+					</div>
+				
+					<div class="col-md-4">
+						<label for="edate" class="write_form-section-title">제출 마감일</label>
+						<input type="date" class="form-control" id="edate" name="edate">
+					</div>
+
+					<div class="col-md-4">
+						<label for="stype" class="write_form-section-title">채점방식</label>
+						<select class="form-select" id="stype" name="stype">
+							<option value="01" selected>백분율 점수</option>
+							<option value="02">Pass or False 방식</option>
+						</select>
+					</div>
+				</div>
+
+				<!-- 5. 첨부 파일 -->
+				<div class="mb-3">
+					 <label class="form-label">첨부 파일 <span class="sub-text">최대 50MB까지 가능합니다.</span></label>
+	            <div class="file-upload-box">
+					<i class="fa-solid fa-paperclip file-icon"></i>
+					<div>
+						<input type="file" id="fileInput" name="attach">
+					</div>
+				</div>
+				</div>
+
+				<!-- 6. 버튼 영역 -->
+				<div class="view_button-group">
+					<button type="button" class="btn-batch-approve" onclick="btnSubmit();">등록</button>
+					<button type="button" class="btn-batch-cancel" onclick="document.location='list.do?sno=${sno}'">취소</button>
+				</div>
+			</form>
+		</main>
+	</div>
+
+	<!-- Bootstrap JS -->
+	<script
+		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

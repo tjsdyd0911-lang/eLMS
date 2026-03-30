@@ -1,0 +1,193 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ include file="../include/user/head.jsp" %>
+<form id="findFrm" name="findFrm" action="id_findok.do" method="post">
+<input type="hidden" id="find_utype" name="utype">
+<input type="hidden" id="find_num" name="num">
+<input type="hidden" id="find_name" name="name">
+<input type="hidden" id="find_hp" name="hp">
+</form>
+<script>
+	window.onload = function()
+	{
+		$("#num").focus();
+	}
+	
+	//var uType = "S";  //구분(S-학생, T-교사, A-관리자)	
+	
+	function IdFind(){
+		if( $("#num").val() == "" ){
+			if( $("#idLabel").html().trim() == "학번"){
+				$("#num").focus();
+				$("#nmsg").html("학번을 입력하세요.");
+				$("#nmsg").css("color","red");
+				return;	
+			}else{
+				$("#num").focus()
+				$("#nmsg").html("사번을 입력하세요.")
+				$("#nmsg").css("color","red");
+				return;
+			}
+		}
+		
+		if( $("#name").val() == "" ){
+			$("#name").focus()
+			$("#nmsg").html("이름을 입력하세요.")
+			$("#nmsg").css("color","red");
+			return;
+		}
+		
+		if( $("#hp").val() == "" ){
+			$("#hp").focus()
+			$("#nmsg").html("핸드폰 번호를 입력하세요.")
+			$("#nmsg").css("color","red");
+			return;
+		}
+		
+		if( numCheck() == false) return; //학번 8자리 검사 함수 호출
+		
+		$.ajax({
+			url: "id_find_check.do",
+			type: "post",
+			dataType: "html",
+			data :
+			{
+				utype : $("#utype").val(),
+				num   : $("#num").val(),
+				name  : $("#name").val(),
+				hp    : $("#hp").val()
+			},
+			success : function(data)
+			{
+				data = data.trim();
+				if( data == "FIND" )
+				{
+					$("#find_utype").val($("#utype").val());
+					$("#find_num").val($("#num").val());
+					$("#find_name").val($("#name").val());
+					$("#find_hp").val($("#hp").val());
+					$("#findFrm").submit();
+					//document.location = "id_findok.do?num=" + $("#num").val() + "name=" + $("#name").val() + "hp=" + $("#hp").val();
+				}else
+				{
+					alert("입력하신 정보가 일치하지 않습니다.");
+					$("#num").focus();
+				}
+			},
+			error : function(xhr,status,error)
+			{
+				alert("실패");
+			}
+		});
+	}
+	
+	//핸드폰 번호 하이픈 자동 생성 정규식 
+	const autoHyphen = (target) => {
+		  target.value = target.value
+		    .replace(/[^0-9]/g, '') // 숫자가 아닌 문자 제거
+		    .replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`) // 10~11자리 포맷팅
+		    .replace(/(\-{1,2})$/g, ""); // 마지막에 남는 하이픈 제거
+		}
+	
+	//학번 최소 글자수(8자리) 검사, 영문숫자 검사 함수
+	function numCheck() {
+		const num = $("#num").val();
+		const reg = /^[a-zA-Z0-9]+$/; // 영문/숫자만 있는지 체크하는 정규식
+		
+		if (!reg.test(num)) {
+		  $("#nmsg").html("영문 대소문자와 숫자만 입력 가능합니다.");
+		  $("#num").focus();
+		  return false; 
+		}
+		return true; 
+	}
+	
+	function setinfo(num, name, hp){
+		$("#num").val(num);
+		$("#name").val(name);
+		$("#hp").val(hp);
+	}
+	
+	//공백 처리하는 함수
+	function SetBlank(obj)
+	{
+		const value = $(obj).val().replace(/\s/g,"");
+		$(obj).val(value);
+	}
+</script>
+        <main>
+            <div class="find-card">
+                <h2>아이디찾기</h2>
+                
+                <!-- 학생/교수 토글 -->
+                <div class="type-toggle-container">
+                    <div id="btnStudent" class="type-item active" onclick="switchUserType('student')">
+                        <span class="dot-radio"></span> 학생
+                    </div>
+                    <div id="btnProfessor" class="type-item" onclick="switchUserType('professor')">
+                        <span class="dot-radio"></span> 교수
+                    </div>
+                </div>
+
+                <!-- 폼 영역 -->
+                <form id="findId">
+                	<input type="hidden" id="utype" name="utype" value="S">
+                    <div class="text-start">
+                        <label class="form-label" id="idLabel">학번</label>
+                        <input type="text" id="num" name="num" maxlength="8" class="form-control custom-input" placeholder="학번 8자리를 입력하세요" onkeyup="SetBlank(this);">
+                    </div>
+                    <div class="text-start">
+                        <label class="form-label">이름</label>
+                        <input type="text" id="name" name="name" class="form-control custom-input" placeholder="실명을 입력하세요" onkeyup="SetBlank(this);">
+                    </div>
+                    <div class="text-start">
+                        <label class="form-label">핸드폰 번호</label>
+                        <input type="tel" oninput="autoHyphen(this)" maxlength="13" class="form-control custom-input" id="hp" name="hp" placeholder="010-0000-0000">
+                    </div>
+                    <span id="nmsg"></span>  
+                	<br><a href="javascript:setinfo('S2024120', '허학생', '010-2222-0120');">아이디 찾기</a>
+                    <button type="button" class="btn btn-find" onclick="IdFind();">아이디 찾기</button>
+                </form>
+				
+                <a href="login.do" class="footer-link">로그인하러 가기</a>
+            </div>
+        </main>
+    </div>
+
+    <!-- 부트스트랩 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // 학생/교수 전환 함수
+        function switchUserType(type) {
+        	$("input").val("");
+        	
+            if (type === "student") {
+                // 학생 선택 시
+                $("#utype").val("S");
+            	$("#deptArea").removeClass('d-none');                
+            	$("#idLabel").text('학번');
+            	$("#nmsg").html("");
+            	$("#num").attr('placeholder', '학번 8자리를 입력하세요');
+            	$("#btnStudent").addClass('active');
+            	$("#btnProfessor").removeClass('active');
+           	 	$("#btnStudent").find('.dot-icon').css('background', '#333');
+                $("#btnProfessor").find('.dot-icon').css('background', 'transparent');
+                $("#btnProfessor").find('.dot-icon').css('border', '1px solid #ccc');
+            } else {
+                // 교수 선택 시
+            	$("#utype").val("T");
+            	$("#deptArea").addClass('d-none');                
+            	$("#idLabel").text('사번');
+            	$("#nmsg").html("");           	
+                $("#num").attr('placeholder', '사번 8자리를 입력하세요');
+                $("#btnProfessor").addClass('active');
+                $("#btnStudent").removeClass('active');
+                $("#btnProfessor").find('.dot-icon').css('background', '#333');
+                $("#btnStudent").find('.dot-icon').css('background', 'transparent');
+                $("#btnStudent").find('.dot-icon').css('border', '1px solid #ccc');
+            }
+        }
+    </script>
+</body>
+</html>

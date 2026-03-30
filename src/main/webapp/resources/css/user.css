@@ -1,0 +1,534 @@
+@charset "UTF-8";
+
+/* =========================================
+    공통 초기화 및 기본 레이아웃
+   ========================================= */
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+	font-family: 'Noto Sans KR', sans-serif;
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+	background-color: #f5f5f5 !important;
+}
+
+a {
+	text-decoration: none;
+	color: #111;
+}
+
+.main-container {
+	display: flex;
+	flex: 1;
+	overflow: hidden;
+}
+
+main {
+	display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f5f5f5;
+	flex: 1;
+	padding: 40px 60px;
+	border-top-left-radius: 25px;
+	overflow-y: auto;
+	flex-direction: column;
+}
+
+/* =========================================
+    상단 헤더 (Header)
+   ========================================= */
+header {
+	background-color: #2D3E50;
+	color: white;
+	display: flex;
+	align-items: center;
+	padding: 0 30px;
+	height: 100px;
+	z-index: 10;
+	min-width: 1100px;
+}
+
+.logo-section {
+	display: flex;
+	align-items: center;
+	gap: 15px;
+	flex-shrink: 0;
+}
+
+.logo-box {
+	background-color: #3498db;
+	color: white;
+	padding: 5px 10px;
+	border-radius: 4px;
+	font-weight: bold;
+	font-size: 20px;
+}
+
+.university-name {
+	font-size: 30px;
+	font-weight: 700;
+	color: white;
+}
+
+/* =========================================
+    사이드바 (Aside Sidebar)
+   ========================================= */
+aside {
+	width: 250px;
+	background-color: #2D3E50;
+	padding-top: 20px;
+	padding-bottom: 30px;
+	flex-shrink: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+/* 사이드바 포인트 라인 */
+.sidebar-accent-line {
+    position: absolute;
+    left: 25px; 
+    top: 20px;
+    width: 3px;
+    height: 45px; 
+    background-color: #3498db;
+}
+
+.side-menu-top {
+	flex: 0 0 auto;
+	padding-top: 20px;
+	position: relative;
+}
+
+.menu-section-title {
+	color: #FFD700;
+	padding: 20px 0 10px 50px;
+	font-size: 16px;
+	font-weight: 700;
+}
+
+/* =========================================
+    폼 및 입력 요소 (공통 사용)
+   ========================================= */
+
+.form-label {
+	font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    text-align: left;
+    display: block;
+	margin-bottom: 10px;
+}
+
+/* 모든 페이지의 입력창 공통 스타일 */
+.custom-input {
+	background-color: #f8f9fa !important;
+	width: 100%;
+	border: 1px solid #eee !important;
+	border-radius: 8px !important;
+	padding: 12px 20px !important;
+	height: 45px;
+    font-size: 14px;
+	color: #555;
+	outline: none;
+}
+
+.custom-input::placeholder { color: #adb5bd; }
+.custom-input:focus { border-color: #3498db !important; box-shadow: none !important; }
+
+
+/* =========================================
+    login.jsp 스타일
+   ========================================= */
+
+/******** 버튼 및 토글 요소 시작 ********/
+/* 로그인 모달 내 학생/교수 전환 토글 버튼 (login.html 사용) */
+.user-toggle-btn {
+    border-radius: 20px;
+    padding: 8px 25px;
+    font-size: 14px;
+    font-weight: bold;
+    transition: 0.3s;
+    cursor: pointer;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #666;
+    margin: 0 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.user-toggle-btn.active {
+    background: #f8f9fa;
+    color: #333;
+    border-color: #333;
+}
+/******** 버튼 및 토글 요소 끝 ********/
+
+
+/* 로그인 카드 (login.html 사용) */
+.login-card {
+    background: white;
+    padding: 50px 60px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+}
+
+.login-card h2 {
+    font-size: 28px;
+    color: #2D3E50;
+    font-weight: 700;
+    margin-bottom: 40px;
+}
+
+
+/* 로그인 페이지 전용 로그인 버튼 */
+.btn-login {
+    background-color: #34495e !important;
+    border: none;
+    height: 50px;
+    font-weight: bold;
+    font-size: 16px;
+    color: white;
+    width: 100%;
+    margin-top: 15px;
+    border-radius: 6px; /* 버튼 둥글기 추가 (기타 버튼과 통일성) */
+    cursor: pointer;
+}
+
+
+/******** 모달 스타일 (회원가입 모달 등) 시작 ********/
+.modal-content { border-radius: 15px; padding: 10px; border: none; overflow: hidden; }
+.modal-header { border-bottom: none; position: relative; padding-top: 25px; }
+.modal-footer { border-top: none; justify-content: center; padding-bottom: 25px; }
+        
+/* 모달 내 '가입하기' 버튼 크기 고정 */
+.btn-primary { width: 435px }
+
+/* 모달 닫기 버튼 (X 아이콘) */
+.modal-close-btn {
+	position: absolute;
+	right: 25px;
+	top: 25px;
+	background: none;
+	border: none;
+	font-size: 24px;
+	color: #999;
+	cursor: pointer;
+	padding: 0;
+	line-height: 1;
+	z-index: 1060;
+}
+
+.modal-close-btn:hover { color: #333; }
+
+/* 토글 버튼 내부 점 아이콘 */
+.dot-icon {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	display: inline-block;
+}
+/******** 모달 스타일 (회원가입 모달 등) 시작 ********/
+
+
+   
+
+.dot-radio {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+}
+   
+/* 활성화된 토글 스타일 */
+.type-item.active .dot-radio {
+    border-color: #333;
+}
+.type-item.active .dot-radio::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background-color: #333;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/*** pw_findok.jsp 공유 ***/
+.footer-link {
+    display: block;
+    margin-top: 25px;
+    color: #3498db;
+    font-weight: bold;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+/* =========================================
+    id_find.jsp 스타일
+   ========================================= */
+   
+/* 아이디찾기 카드 디자인 */
+.find-card {
+    background: white;
+    padding: 50px 60px;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+}
+
+.find-card h2 {
+    font-size: 28px;
+    color: #2D3E50;
+    font-weight: 700;
+    margin-bottom: 30px;
+}
+   
+/* 학생/교수 토글 컨테이너 */
+.type-toggle-container {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 35px;
+}  
+   
+.type-item {
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: bold;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.custom-input {
+    margin-bottom: 20px;
+}
+
+/*** pw_findok.jsp 공유 ***/
+/* 버튼 스타일 */
+.btn-find {
+    background-color: #3498db !important;
+    border: none;
+    height: 55px;
+    font-weight: bold;
+    font-size: 16px;
+    color: white;
+    width: 100%;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.footer-link {
+    margin-top: 25px;
+    font-size: 14px;
+}
+
+
+/* =========================================
+    id_findok.jsp 스타일
+   ========================================= */
+
+/* 결과 카드 디자인 */
+.result-card {
+    background: white;
+    padding: 80px 60px;
+    border-radius: 15px;
+    box-shadow: 0 4px 25px rgba(0,0,0,0.06);
+    width: 100%;
+    max-width: 550px;
+    text-align: center;
+}
+
+/* 결과 문구 스타일 */
+.result-text {
+    font-size: 24px;
+    font-weight: 700;
+    color: #2D3E50;
+    line-height: 1.5;
+    margin-bottom: 60px;
+}
+
+/* 아이디 강조색 (이미지의 자주색/핑크색 계열) */
+.id-highlight {
+    color: #d63384; 
+    font-size: 28px;
+    display: block; /* 아이디만 한 줄 차지하게 설정 */
+    margin: 5px 0;
+}
+
+/* 하단 큰 파란색 버튼 스타일 */
+.btn-redirect {
+    background-color: #3498db !important;
+    border: none;
+    height: 60px;
+    font-weight: bold;
+    font-size: 16px;
+    color: white;
+    width: 100%;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.btn-redirect:hover {
+    background-color: #2980b9 !important;
+}
+
+/* =========================================
+    pw_find.jsp 스타일
+   ========================================= */
+
+/* 비밀번호찾기 카드 디자인 */
+.pw-find-card {
+    background: white;
+    padding: 50px 60px;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+}
+
+.pw-find-card h2 {
+    font-size: 28px;
+    color: #2D3E50;
+    font-weight: 700;
+    margin-bottom: 30px;
+}
+
+/* 학생/교수 토글 컨테이너 */
+.toggle-capsule {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.toggle-item {
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: bold;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+        
+.custom-input {
+    height: 48px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}       
+        
+/* 버튼 스타일 */
+.btn-reset {
+    background-color: #3498db !important;
+    height: 55px;
+    font-size: 16px;
+    color: white;
+    width: 100%;
+    border-radius: 8px;
+    margin-top: 10px;
+}       
+        
+.footer-link {
+    margin-top: 20px;
+    font-size: 13px;
+}        
+       
+/* =========================================
+    pw_findok.jsp 스타일
+   ========================================= */
+   
+/* 비밀번호 재설정 카드 디자인 */
+.reset-card {
+    background: white;
+    padding: 60px 70px;
+    border-radius: 15px;
+    box-shadow: 0 4px 25px rgba(0,0,0,0.06);
+    width: 100%;
+    max-width: 550px;
+    text-align: center;
+}
+
+.reset-card h2 {
+    font-size: 28px;
+    color: #2D3E50;
+    font-weight: 700;
+    margin-bottom: 35px;
+}
+  
+/* 아이디 안내 문구 스타일 */
+.instruction-text {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2D3E50;
+    margin-bottom: 30px;
+}
+.user-id-highlight {
+    color: #d63384; /* 이미지의 핑크/자주색 계열 아이디 강조색 */
+}   
+   
+.custom-input {
+    background-color: #f9f9f9 !important;
+    border: 1px solid #f0f0f0 !important;
+    height: 50px;
+    margin-bottom: 25px;
+}
+.custom-input::placeholder {
+    color: #bbb;
+}   
+   
+/* 비밀번호 eye 토글 디자인 */ 
+.mb-3 {
+    position: relative;
+}
+
+.togglePw {
+    position: absolute;
+    right: 15px;
+    top: 40px; 
+    cursor: pointer;
+    color: #6c757d; 
+    z-index: 10;
+}
+
+.togglePw:hover {
+    color: #333;
+}
+
+#pmsg {
+    display: block; /* 줄바꿈 적용 */
+    margin-top: 5px;
+    font-size: 0.85em;
+}
+   
+   
+   
+   
+   
+   
+   

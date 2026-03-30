@@ -1,0 +1,25 @@
+	@RequestMapping(value = "/down.do")
+	public void DownLoad(@RequestParam("name")String originalFileName,
+			@RequestParam("file")String savedFileName,
+			HttpServletResponse response) throws Exception
+	{
+		//originalFileName --> a.jpg
+		//savedFileName --> asdf-dasdf-xxdfdf-dd
+		//첨부파일을 읽기하기 위한 객체 생성
+		String uploadPath = "D:\\WorkSpace\\SpringEx12\\upload"; 
+		File file = new File(uploadPath, savedFileName);	
+		
+		// 파일명 인코딩
+		String encodedFileName = new String (originalFileName.getBytes("UTF-8"), "ISO-8859-1");		
+				
+		//브라우저에게 다운로드 해야 하는 파일이라고 헤더 전송
+		response.setContentType("application/download");
+		response.setContentLength((int)file.length());
+		response.setHeader("Content-Disposition", "attatchment;filename=\"" + encodedFileName + "\"");
+		
+		//실제 파일을 브라우저에 전송
+		OutputStream os = response.getOutputStream();
+		
+		FileInputStream fis = new FileInputStream(file);
+		FileCopyUtils.copy(fis, os);
+	}

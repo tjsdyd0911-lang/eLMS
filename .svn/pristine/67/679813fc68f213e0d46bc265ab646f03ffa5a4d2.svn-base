@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="elms.student">
+	<select id="match" parameterType="com.elms.vo.UserVO" resultType="java.lang.Integer">
+		select count(*) from user 
+		where uid = #{uid} and pw = md5(#{pw})
+	</select>
+	
+	<select id="info" parameterType="com.elms.vo.UserVO" resultType="com.elms.vo.UserVO">
+		select * from user where uid = #{uid}
+	</select>
+	
+	<update id="update" parameterType="com.elms.vo.UserVO">
+		update user 
+		set hp = #{hp}, pw = md5(#{pw}) 
+		where uid = #{uid}
+	</update>
+</mapper>

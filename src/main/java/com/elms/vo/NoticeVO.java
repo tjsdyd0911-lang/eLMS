@@ -1,0 +1,39 @@
+/************************************
+ * 클래스 : 공지사항(notice) 테이블용 VO
+ * 작성자 : 박윤희
+ * 작성일 : 2026.02.03
+ * ***********************************/
+package com.elms.vo;
+
+public class NoticeVO {
+	private int nno; 	//공지번호
+	private String title; 	//제목
+	private String content; //내용
+	private String wdate;   //작성일
+	private String pname;   //물리파일
+	private String fname;   //논리파일
+	
+	public int getNno() 	   { return nno;	 }
+	public String getTitle()   { return title;	 }
+	public String getContent() { return content; }
+	public String getWdate()   { return wdate;	 }
+	public String getPname()   { return pname; 	 }
+	public String getFname()   { return fname;   }
+	public String getHTML() 
+	{
+		String note = this.content;
+		//HTML을 TEXT로 변환한다.
+		note = note.replace("<","&lt;");
+		note = note.replace(">","&gt;");
+		note = note.replace("\n","\n<br>");
+		return note;		
+	}	
+	
+	public void setNno(int nno) 		   { this.nno = nno;		 }
+	public void setTitle(String title) 	   { this.title = title;	 }
+	public void setContent(String content) { this.content = content; }
+	public void setWdate(String wdate) 	   { this.wdate = wdate;	 }
+	public void setPname(String pname) 	   { this.pname = pname;	 }
+	public void setFname(String fname) 	   { this.fname = fname;	 }
+	
+}

@@ -1,0 +1,113 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ include file="../../include/student/head.jsp"%>
+<script>
+window.onload = function()
+{
+	$("#btn-submit").click(function(){
+		DoSubmit();
+	});
+	$("#btn-cancel").click(function(){
+		DoCancel();
+	});
+	$("#btn-delete").click(function(){
+		DoDelete();
+	});
+}
+function DoSubmit(){
+	if(confirm("게시물을 수정하시겠습니까?") == true){
+		$("#frm").submit();
+	}
+}
+function DoCancel(){
+	document.location = "view.do?tno=${ submission.tno }";
+}
+function DoDelete(){
+	if(confirm("첨부파일을 삭제 하시겠습니까?") == true){
+		$("input[name='nowfile']").val("");
+		$(".delete").remove();
+	}
+}
+
+</script>
+    <div class="main-container">
+        <aside>
+            <div class="side-menu-top">
+             	<a href="../notice/list.do" class="menu-item">공지사항</a>
+                <a href="../apply/apply.do" class="menu-item">수강 신청</a>
+                <a href="../task/list.do" class="menu-item active">과제 관리</a>
+            </div>
+ <%@ include file="../../include/student/side.jsp"%>           
+        </aside>
+        
+        <main>
+            <!-- Breadcrumb 및 제목 한 줄 배치 규격 -->
+            <div class="content-header">
+                <h2 class="content-title">과제 수정</h2>
+                <nav aria-label="breadcrumb">
+                    <div class="breadcrumb">
+                       <a href="list.do"> 과제관리 &nbsp; </a> > &nbsp; <a href="view.do?tno=${ submission.tno }"> 과제상세보기 &nbsp; </a> > &nbsp; <span>과제수정</span>
+                    </div>
+                </nav>
+            </div>
+            <hr class="view-divider">
+
+            <div class="submit-card">
+                <form id="frm" name="frm" action="updateok.do" method="post" enctype="multipart/form-data">
+					<input type="hidden" name="tno" value="${submission.tno}">
+					<div class="row info-row">
+						<div class="col-md-4">
+						 	  <label class="form-label">과목명</label>
+							  ${ submission.sname }
+						</div>
+						<div class="col-md-4">
+						    <label class="form-label">과제명</label>
+						    ${ submission.ttitle }
+						</div>
+						<div class="col-md-4">
+						    <label class="form-label">마감일</label>
+						    ${ submission.edate }
+					    </div>
+					</div>
+					<br>
+					<br>
+                    <!-- 과제 제목 -->
+                    <div class="form-group">
+                        <label class="form-label">과제 제목</label>
+                        <input type="text" id="title" name="title" class="form-control custom-input" value="${ submission.title }">
+                    </div>
+
+                    <!-- 첨부 파일 -->
+                    <div class="form-group">
+                        <label class="form-label">첨부 파일 <span class="sub-text">최대 50MB까지 가능합니다.</span></label>
+                        <input type="file" id="fileInput" name="attach" class="form-control custom-input">
+                    	<input type="hidden" name="nowfile" value="${ submission.fname }">
+                    	<div class="delete">
+                    		${ submission.fname }
+                    		<c:if test="${ submission.fname != null && submission.fname != '' }">
+	                    		<button style="border:0; background:none;" type="button" id="btn-delete" onclick="DoDelete();">
+	                    			<i class="bi bi-x-circle-fill"></i>
+	                    		</button>
+							</c:if>
+                   		</div>
+                    </div>
+
+                    <!-- 과제 내용 -->
+                    <div class="form-group">
+                        <label class="form-label">과제 내용</label>
+                        <textarea id="content" name="content" class="form-control custom-input">${ submission.content }</textarea>
+                    </div>
+
+                    <!-- 버튼 영역 -->
+                    <div class="btn-container">
+                        <button type="button" id="btn-submit" class="btn-submit">등록</button>
+                        <button type="button" id="btn-cancel" class="btn-cancel">취소</button>
+                    </div>
+                </form>
+            </div>
+        </main>
+        <!-- [CONTENT] MAIN END -->
+    </div>
+
+</body>
+</html>

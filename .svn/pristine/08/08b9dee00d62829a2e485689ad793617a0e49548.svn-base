@@ -1,0 +1,346 @@
+package com.elms.control;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.elms.service.AdminService;
+import com.elms.service.StudentService;
+import com.elms.vo.ApplyVO;
+import com.elms.vo.NoticeVO;
+import com.elms.vo.SubjectVO;
+import com.elms.vo.SubmissionVO;
+import com.elms.vo.TaskVO;
+import com.elms.vo.UserVO;
+
+@Controller
+@RequestMapping("/student")
+public class StudentController {
+
+	StudentService studentService;
+	AdminService adminService;
+	
+	private static final String uploadPath = "D:\\WorkSpace\\eLMS05\\upload";
+	
+	@Autowired
+	public StudentController(StudentService studentService, AdminService adminService) {
+		this.studentService = studentService;
+		this.adminService = adminService;
+	}
+	
+	//공지사항 페이지 이동
+	@RequestMapping(value = "/notice/list.do")
+	public String noticeList(Model model, HttpSession session,
+			@RequestParam(defaultValue = "1") int page, 
+			@RequestParam(defaultValue = "1")String kind,
+			String key) {
+		//유저 로그인 확인 여부를 위한 조회
+		UserVO login = (UserVO)session.getAttribute("login");
+		//로그인 정보 없으면 로그인 페이지로 이동
+		if(login == null) return "redirect:/login.do";
+		
+		if(key == null) key = "";
+		
+		List<NoticeVO> list = adminService.NoticeGetList(kind,key,page);
+
+		// 전체 게시물 갯수
+		int total = adminService.NoticeGetTotal(kind,key);
+
+		// 최대 페이지
+		int maxpage = total / 10;
+		if (total % 10 != 0)
+			maxpage++;
+
+		// 페이징 블럭 계산 (시작블럭, 끝블럭)
+		// 시작블럭 = (현재페이지/10) * 10 + 1
+		int startbk = (page / 10) * 10 + 1;
+		// 끝블럭 = 시작블럭 + 10 - 1
+		int endbk = startbk + 10 - 1;
+		// 끝블럭 > 전체페이지 갯수 크면
+		if (endbk > maxpage) {
+			endbk = maxpage;
+		}
+
+		model.addAttribute("list", list);
+
+		// 페이징 처리용 정보를 jsp 전달
+		model.addAttribute("total", total);
+		model.addAttribute("maxpage", maxpage);
+
+		model.addAttribute("startbk", startbk);
+		model.addAttribute("endbk", endbk);
+
+		model.addAttribute("pageno", page);
+		model.addAttribute("kind", kind);
+		model.addAttribute("key", key);
+
+		return "student/notice/list";
+	}
+	
+	@RequestMapping(value = "/notice/view.do")
+	public String noticeView() {
+		return "student/notice/view";
+	}
+	
+	//학생 수강 신청 페이지
+	@RequestMapping(value = "/apply/apply.do")
+	public String applyApply(
+			@RequestParam(defaultValue = "1") int page, 
+			@RequestParam(defaultValue = "all")String kind,
+			Model model, HttpSession session) {
+		
+		//유저 로그인 확인 여부를 위한 조회
+		UserVO login = (UserVO)session.getAttribute("login");
+		//로그인 정보 없으면 로그인 페이지로 이동
+		if(login == null) return "redirect:/login.do";
+		
+		int perPage = 10;
+		int start = (page - 1) * perPage;
+		
+		//과목 전체 조회
+		List<SubjectVO> subjects = studentService.SubjectList(login.getUno(), start, perPage, kind);
+		
+		//전체 과목 수 조회
+		int total = studentService.SubjectCount(login.getUno(), start, perPage, kind);
+		
+		//내가 수강 신청한 과목 조회
+		List<ApplyVO> applys = studentService.MyApplyList(login.getUno());
+		//수강 신청한 학생 수 조회
+		int applycnt = studentService.ApplySelect(login.getUno());
+		//내가 수강 신청한 과목 수 조회
+		int myapplycnt = studentService.MyApplyOne(login.getUno());
+		
+		//최대 페이지
+		int maxpage = total / perPage;
+		if (total % perPage != 0) maxpage++;
+
+		// 페이징 블럭 계산 (시작블럭, 끝블럭)
+		//(page - 1)을 해야 10, 20, 30 단위 페이지에서도 블록이 유지
+		int startbk = ((page - 1) / 5) * 5 + 1;
+		//끝블럭 = 시작블럭 + 10 - 1
+		int endbk = startbk + 4;
+		//끝블럭 > 전체페이지 갯수 크면
+		if (endbk > maxpage) {
+			endbk = maxpage;
+		}
+		
+		model.addAttribute("login", login);
+		model.addAttribute("subjects", subjects);
+		session.setAttribute("applys",applys);
+		model.addAttribute("applycnt", applycnt);
+		model.addAttribute("myapplycnt", myapplycnt);
+		
+		// 페이징 처리용 정보를 jsp 전달
+		model.addAttribute("total", total);
+		model.addAttribute("maxpage", maxpage);
+
+		model.addAttribute("startbk", startbk);
+		model.addAttribute("endbk", endbk);
+
+		model.addAttribute("currentpg", page);
+		model.addAttribute("kind", kind);
+		
+		return "student/apply/apply";
+	}
+	
+	//학생 수강 신청 처리
+	@RequestMapping(value = "/apply/apply.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String applyApply(
+			@RequestParam(value="uno", required=false) int uno,
+			@RequestParam(value="sno", required=false) int sno) {
+		studentService.SubjectApply(uno, sno);
+		return "OK";
+	}
+	
+	//학생 수강 신청 취소 처리
+	@RequestMapping(value = "/apply/applyCancel.do")
+	@ResponseBody
+	public String applyDelete(
+			@RequestParam(value="uno", required=false) int uno,
+			@RequestParam(value="sno", required=false) int sno) {
+		studentService.ApplyDelete(uno, sno);
+		return "OK";
+	}
+	
+	@RequestMapping(value = "/task/list.do")
+	public String taskList(HttpSession session, Model model,
+			@RequestParam(defaultValue = "1") int page, 
+			@RequestParam(defaultValue = "all")String kind,
+			@RequestParam(value="sno", required=false, defaultValue="0") int sno) {
+		
+		//유저 로그인 확인 여부를 위한 조회
+		UserVO login = (UserVO)session.getAttribute("login");
+		//로그인 정보 없으면 로그인 페이지로 이동
+		if(login == null) return "redirect:/login.do";
+		
+		int perPage = 10;
+		int start = (page - 1) * perPage;
+		
+		//나의 과제 조회
+		List<TaskVO> tasks = studentService.TaskList(login.getUno(), sno, start, perPage, kind);
+		
+		//전체 과제 수 조회
+		int total = studentService.TaskCount(login.getUno(), sno, start, perPage, kind);
+		
+		int maxpage = total / perPage;
+		if (total % perPage != 0) maxpage++;
+
+		// 페이징 블럭 계산 (시작블럭, 끝블럭)
+		//(page - 1)을 해야 10, 20, 30 단위 페이지에서도 블록이 유지
+		int startbk = ((page - 1) / 5) * 5 + 1;
+		//끝블럭 = 시작블럭 + 10 - 1
+		int endbk = startbk + 4;
+		//끝블럭 > 전체페이지 갯수 크면
+		if (endbk > maxpage) {
+			endbk = maxpage;
+		}
+		
+		model.addAttribute("tasks", tasks);
+		
+		// 페이징 처리용 정보를 jsp 전달
+		model.addAttribute("total", total);
+		model.addAttribute("maxpage", maxpage);
+
+		model.addAttribute("startbk", startbk);
+		model.addAttribute("endbk", endbk);
+
+		model.addAttribute("currentpg", page);
+		model.addAttribute("kind", kind);
+		
+		return "student/task/list";
+	}
+	
+	//내가 선택한 과목의 과제 상세 페이지
+	@RequestMapping(value = "/task/t_view.do")
+	public String taskTview(Model model,
+			@RequestParam(value="tno", required=false, defaultValue="0") int tno) {
+		
+		TaskVO task = studentService.TaskViewInfo(tno);
+		
+		model.addAttribute("task", task);
+		
+		return "student/task/t_view";
+	}
+	
+	//내가 선택한 과제의 과제 작성 페이지
+	@RequestMapping(value = "/task/write.do")
+	public String taskWrite(Model model,
+			@RequestParam(value="tno", required=false, defaultValue="0") int tno) {
+		
+		TaskVO view = studentService.TaskViewInfo(tno);
+		
+		model.addAttribute("view", view);
+		
+		return "student/task/write";
+		
+	}
+	
+	//내가 선택한 과제의 과제 작성 처리
+	@RequestMapping(value = "/task/writeok.do", method = RequestMethod.POST)
+	public String taskWriteOk(SubmissionVO vo, HttpSession session,
+			@RequestParam(value="tno", required=false, defaultValue="0") int tno,
+			@RequestParam("attach") MultipartFile file			
+			) throws IllegalStateException, IOException {
+		
+		//유저 로그인 확인 여부를 위한 조회
+		UserVO login = (UserVO)session.getAttribute("login");
+		//로그인 정보 없으면 로그인 페이지로 이동
+		if(login == null) return "redirect:/login.do";
+		
+		if (file != null) {
+			// 업로드된 원본 파일 이름 가져오기
+			String originalFileName = file.getOriginalFilename();
+	
+			UUID uuid = UUID.randomUUID();
+			String savedFileName = uuid.toString();
+
+			String saveFileName = uploadPath + "\\" + savedFileName;
+
+			File newFile = new File(saveFileName);
+
+			file.transferTo(newFile);
+
+			vo.setFname(originalFileName);
+			vo.setPname(savedFileName);
+		}
+		
+		studentService.SubmissionInsert(login.getUno(), tno, vo);
+		
+		return "redirect:/student/task/view.do?smno=" + vo.getSmno();
+	}
+	
+	//내가 제출한 과제 단건 조회
+	@RequestMapping(value = "/task/view.do")
+	public String taskView(HttpSession session, Model model, int tno) {
+		
+		//유저 로그인 확인 여부를 위한 조회
+		UserVO login = (UserVO)session.getAttribute("login");
+		//로그인 정보 없으면 로그인 페이지로 이동
+		if(login == null) return "redirect:/login.do";
+		
+		SubmissionVO submission = studentService.SubmissionViewInfo(login.getUno(), tno);
+		
+		model.addAttribute("submission", submission);
+		
+		return "student/task/view";
+		
+	}
+	
+	@RequestMapping(value = "/task/update.do")
+	public String taskUpdate() {
+		return "student/task/update";
+	}
+	
+	@RequestMapping(value = "/user/update.do")
+	public String userUpdate() {
+		return "student/user/update";
+	}
+	
+	@RequestMapping(value = "/user/pwmatch.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String PwMatch(String id, String pw, HttpSession session) {
+		UserVO login = (UserVO)session.getAttribute("login");
+		if(login == null) return "redirect:/user/login.do";
+		boolean match = studentService.PwMatch(id, pw);
+		if( match == true) {
+			return "O";
+		}else {
+			return "X";
+		}
+	}
+	
+	@RequestMapping(value = "/user/updateok.do")
+	public String Updateok(String uid, Model model) {
+		UserVO vo = new UserVO();
+		vo.setUid(uid);
+		UserVO UserInfo = studentService.UserInfo(vo);
+		
+		model.addAttribute("num", UserInfo.getNum());
+		model.addAttribute("name", UserInfo.getName());
+		model.addAttribute("id", UserInfo.getUid());
+		model.addAttribute("hp", UserInfo.getHp());
+		model.addAttribute("major", UserInfo.getMajor());
+		return "student/user/updateok";
+	}
+	
+	@RequestMapping(value = "/user/infoupdate.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String InfoUpdate(String id, String hp, String pw) {
+		studentService.InfoUpdate(id, hp, pw);
+		return "OK";
+	}
+	
+}

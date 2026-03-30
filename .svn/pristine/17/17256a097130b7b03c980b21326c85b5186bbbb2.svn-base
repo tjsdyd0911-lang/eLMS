@@ -1,0 +1,39 @@
+package com.elms.control;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/admin")
+public class AdminController {
+	
+	@RequestMapping(value = "/notice/list.do")
+	public String noticeList() {
+		return "admin/notice/list";
+	}
+	
+	@RequestMapping(value = "/notice/view.do")
+	public String noticeView() {
+		return "admin/notice/view";
+	}
+
+	@RequestMapping(value = "/notice/write.do")
+	public String noticeWrite() {
+		return "admin/notice/write";
+	}
+	
+	@RequestMapping(value = "/notice/update.do")
+	public String noticeUpdate() {
+		return "admin/notice/update";
+	}
+	
+	@RequestMapping(value = "/teacher/list.do")
+	public String teacherList() {
+		return "admin/teacher/list";
+	}
+	
+	@RequestMapping(value = "/student/list.do")
+	public String studentList() {
+		return "admin/student/list";
+	}
+}

@@ -1,0 +1,236 @@
+package com.elms.control;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.Locale;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.web.bind.annotation.*;
+
+import com.elms.service.TeacherService;
+import com.elms.util.ConvertUtil;
+import com.elms.vo.NoticeVO;
+import com.elms.vo.SubjectVO;
+import com.elms.vo.TaskVO;
+import com.elms.vo.UserVO;
+
+
+@Controller
+@RequestMapping("/teacher")
+public class TeacherController {
+
+	@Autowired
+	TeacherService teacherService;
+	
+	@RequestMapping(value = "/notice/list.do")
+	public String noticeList() {
+		return "teacher/notice/list";
+	}
+	
+	@RequestMapping(value = "/notice/view.do")
+	public String noticeView() {
+		return "teacher/notice/view";
+	}
+	
+	@RequestMapping(value = "/subject/list.do")
+	public String subjectList(@RequestParam(defaultValue = "1") int page, Model model, HttpSession session) {
+		UserVO login = (UserVO)session.getAttribute("login");
+		
+		List<SubjectVO> list = teacherService.subjectList(login.getUno(), page);
+
+		// 전체 게시물 갯수
+		int total = teacherService.SubjectGetTotal(login.getUno());
+
+		// 최대 페이지
+		int maxpage = total / 5;
+		if (total % 5 != 0)
+			maxpage++;
+
+		int startbk = (page / 5) * 5 + 1;
+
+		int endbk = startbk + 5 - 1;
+		
+		if (endbk > maxpage) {
+			endbk = maxpage;
+		}
+		
+		if (list != null && !list.isEmpty()) {
+			for(SubjectVO subject : list) {
+			    int count = teacherService.ApplyCount(subject.getSno());
+			    subject.setApplynow(count); // VO에 applynow 객체 추가
+			}
+		}else {
+			return "teacher/subject/list";	
+		}
+		model.addAttribute("list", list);
+		// 페이징 처리용 정보를 jsp 전달
+		model.addAttribute("maxpage", maxpage);
+		model.addAttribute("startbk", startbk);
+		model.addAttribute("endbk", endbk);
+		model.addAttribute("pageno", page);
+		return "teacher/subject/list";
+	}
+	
+	@RequestMapping(value = "/task/list.do")
+	public String taskList(@RequestParam(defaultValue = "1") int page, int sno, String sname, Model model) {
+		
+		List<TaskVO> list = teacherService.taskList(sno, page);
+		int count = teacherService.ApplyCount(sno);
+		
+		// 전체 게시물 갯수
+		int total = teacherService.TaskGetTotal(sno);
+
+		// 최대 페이지
+		int maxpage = total / 5;
+		if (total % 5 != 0)
+			maxpage++;
+
+		int startbk = (page / 5) * 5 + 1;
+
+		int endbk = startbk + 5 - 1;
+		
+		if (endbk > maxpage) {
+			endbk = maxpage;
+		}
+		
+//		if (list != null && !list.isEmpty()) {
+//			for(TaskVO subject : list) {
+//			    int count = teacherService.ApplyCount(subject.getSno());
+//			    subject.setApplynow(count); // VO에 applynow 객체 추가
+//			}
+//		}else {
+//			return "teacher/task/list";	
+//		}
+		model.addAttribute("count", count);
+		model.addAttribute("title", sname);
+		model.addAttribute("list", list);
+		// 페이징 처리용 정보를 jsp 전달
+		model.addAttribute("maxpage", maxpage);
+		model.addAttribute("startbk", startbk);
+		model.addAttribute("endbk", endbk);
+		model.addAttribute("pageno", page);
+		
+		return "teacher/task/list";
+	}
+	
+	@RequestMapping(value = "/task/slist.do")
+	public String taskSlist() {
+		return "teacher/task/slist";
+	}
+	
+	@RequestMapping(value = "/task/write.do")
+	public String taskWrite() {
+		return "teacher/task/write";
+	}
+	
+	@RequestMapping(value = "/task/view.do")
+	public String taskView(int tno, Model model) {
+		TaskVO vo = teacherService.taskView(tno);
+		
+		model.addAttribute("view",vo);
+		
+		return "teacher/task/view";
+	}	
+		
+	@RequestMapping(value = "/user/update.do")
+	public String userUpdate() {
+		return "teacher/user/update";
+	}
+	
+	@RequestMapping(value = "/user/pwmatch.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String PwMatch(String id, String pw, HttpSession session) {
+		UserVO login = (UserVO)session.getAttribute("login");
+		if(login == null) return "redirect:/user/login.do";
+		boolean match = teacherService.PwMatch(id, pw);
+		if( match == true) {
+			return "O";
+		}else {
+			return "X";
+		}
+	}
+	
+	@RequestMapping(value = "/user/updateok.do")
+	public String Updateok(String uid, Model model) {
+		UserVO vo = new UserVO();
+		vo.setUid(uid);
+		UserVO UserInfo = teacherService.UserInfo(vo);
+		
+		model.addAttribute("num", UserInfo.getNum());
+		model.addAttribute("name", UserInfo.getName());
+		model.addAttribute("id", UserInfo.getUid());
+		model.addAttribute("hp", UserInfo.getHp());
+		return "teacher/user/updateok";
+	}
+	
+	@RequestMapping(value = "/user/infoupdate.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String InfoUpdate(String id, String hp, String pw) {
+		teacherService.InfoUpdate(id, hp, pw);
+		return "OK";
+	}
+	
+	@RequestMapping(value = "/subject/sname_check.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String SnameCheck(String sname) {
+		boolean check = teacherService.SnameCheck(sname);
+		if( check == true) {
+			return "OK";
+		}
+		return "NO";
+	}
+	
+	@RequestMapping(value = "/subject/subjectok.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String SubjectOk(SubjectVO vo) {
+		teacherService.SubjectOk(vo);
+		return "OK";
+	}
+	
+	@RequestMapping(value = "/subject/subject_del.do/{sno}", method = RequestMethod.DELETE, produces = "text/plain; charset=UTF-8")
+	@ResponseBody
+	public ResponseEntity<String> SubjectDel(@PathVariable String sno) {
+		System.out.println("넘어온 sno: " + sno);
+		try {
+			teacherService.SubjectDel(sno);
+			return new ResponseEntity<String>("삭제되었습니다.", HttpStatus.OK);
+		}catch (DataIntegrityViolationException e) {
+            // 외래키 제약조건 위반 시 409 Conflict 반환
+            return new ResponseEntity<String>("해당 과목을 수강신청한 학생이 있습니다.", HttpStatus.CONFLICT);
+                                 
+        } catch (Exception e) {
+            // 그 외 알 수 없는 에러는 500 에러 반환
+            return new ResponseEntity<String>("삭제실패 : 재시도 또는 관리자에게 문의하세요.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+		
+	}
+	
+	@RequestMapping(value = "/subject/subject_update.do", method = RequestMethod.POST, produces = "text/plain; charset=UTF-8")
+	@ResponseBody
+	public String SubjectUpdate(int uno, int sno) {
+		SubjectVO vo = teacherService.SubjectSearch(uno, sno);
+
+		return ConvertUtil.toJson(vo);
+	}
+	
+	@RequestMapping(value = "/subject/subject_updateok.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String SubjectUpdateOk(SubjectVO vo) {
+		teacherService.SubjectUpdate(vo);
+		return "OK";
+	}
+	
+}

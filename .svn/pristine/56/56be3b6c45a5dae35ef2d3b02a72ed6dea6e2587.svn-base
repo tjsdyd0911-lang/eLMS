@@ -1,0 +1,739 @@
+package com.elms.control;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.UUID;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.util.FileCopyUtils;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.elms.service.AdminService;
+import com.elms.service.StudentService;
+import com.elms.util.FileUtil;
+import com.elms.vo.ApplyVO;
+import com.elms.vo.NoticeVO;
+import com.elms.vo.SubjectVO;
+import com.elms.vo.SubmissionVO;
+import com.elms.vo.TaskVO;
+import com.elms.vo.UserVO;
+
+@Controller
+@RequestMapping("/student")
+public class StudentController {
+
+	StudentService studentService;
+	AdminService adminService;
+	
+	private static final String uploadPath = "D:\\WorkSpace\\eLMS05\\upload";
+	
+	@Autowired
+	public StudentController(StudentService studentService, AdminService adminService) {
+		this.studentService = studentService;
+		this.adminService = adminService;
+	}
+	
+	//공지사항 페이지 이동
+	@RequestMapping(value = "/notice/list.do")
+	public String noticeList(Model model, HttpSession session,
+			@RequestParam(defaultValue = "1") int page, 
+			@RequestParam(defaultValue = "1")String kind,
+			String key) {
+		//유저 로그인 확인 여부를 위한 조회
+		UserVO login = (UserVO)session.getAttribute("login");
+		//로그인 정보 없으면 로그인 페이지로 이동
+		if(login == null) return "redirect:/login.do";
+		
+		if(key == null) key = "";
+		
+		List<NoticeVO> list = adminService.NoticeGetList(kind,key,page);
+
+		// 전체 게시물 갯수
+		int total = adminService.NoticeGetTotal(kind,key);
+
+		// 최대 페이지
+		int maxpage = total / 10;
+		if (total % 10 != 0)
+			maxpage++;
+
+		// 페이징 블럭 계산 (시작블럭, 끝블럭)
+		// 시작블럭 = (현재페이지/10) * 10 + 1
+		int startbk = (page / 10) * 10 + 1;
+		// 끝블럭 = 시작블럭 + 10 - 1
+		int endbk = startbk + 10 - 1;
+		// 끝블럭 > 전체페이지 갯수 크면
+		if (endbk > maxpage) {
+			endbk = maxpage;
+		}
+
+		model.addAttribute("list", list);
+
+		// 페이징 처리용 정보를 jsp 전달
+		model.addAttribute("total", total);
+		model.addAttribute("maxpage", maxpage);
+
+		model.addAttribute("startbk", startbk);
+		model.addAttribute("endbk", endbk);
+
+		model.addAttribute("pageno", page);
+		model.addAttribute("kind", kind);
+		model.addAttribute("key", key);
+
+		return "student/notice/list";
+	}
+	
+	@RequestMapping(value = "/notice/view.do")
+	public String noticeView(@RequestParam(defaultValue = "1") int page, 
+			@RequestParam(defaultValue = "1")String kind,
+			String key,String no, Model model) {
+		
+		if (no == null) {
+			// 게시물 번호가 지정 안됨.
+			return "redirect:/admin/notice/list.do";
+		}
+		NoticeVO vo = adminService.NoticeRead(no);
+		if (vo == null) {
+			// 게시물이 없음
+			return "redirect:/admin/notice/list.do";
+		}
+
+		model.addAttribute("notice", vo);
+		
+		model.addAttribute("pageno", page);
+		model.addAttribute("kind", kind);
+		model.addAttribute("key", key);
+		
+		return "student/notice/view";
+	}
+	
+	//학생 수강 신청 페이지
+	@RequestMapping(value = "/apply/apply.do")
+	public String applyApply(
+			@RequestParam(defaultValue = "1") int page, 
+			@RequestParam(defaultValue = "all")String kind,
+			Model model, HttpSession session) {
+		
+		//유저 로그인 확인 여부를 위한 조회
+		UserVO login = (UserVO)session.getAttribute("login");
+		//로그인 정보 없으면 로그인 페이지로 이동
+		if(login == null) return "redirect:/login.do";
+		
+		int perPage = 10;
+		int start = (page - 1) * perPage;
+		
+		//과목 전체 조회
+		List<SubjectVO> subjects = studentService.SubjectList(login.getUno(), start, perPage, kind);
+		
+		//전체 과목 수 조회
+		int total = studentService.SubjectCount(login.getUno(), start, perPage, kind);
+		
+		//내가 수강 신청한 과목 조회
+		List<ApplyVO> applys = studentService.MyApplyList(login.getUno());
+		
+		//내가 수강 신청한 과목 수 조회
+		int myapplycnt = studentService.MyApplyOne(login.getUno());
+		
+		//최대 페이지
+		int maxpage = total / perPage;
+		if (total % perPage != 0) maxpage++;
+
+		// 페이징 블럭 계산 (시작블럭, 끝블럭)
+		//(page - 1)을 해야 10, 20, 30 단위 페이지에서도 블록이 유지
+		int startbk = ((page - 1) / 5) * 5 + 1;
+		//끝블럭 = 시작블럭 + 10 - 1
+		int endbk = startbk + 4;
+		//끝블럭 > 전체페이지 갯수 크면
+		if (endbk > maxpage) {
+			endbk = maxpage;
+		}
+		
+		session.setAttribute("login", login);
+		model.addAttribute("subjects", subjects);
+		session.setAttribute("applys",applys);
+		model.addAttribute("myapplycnt", myapplycnt);
+		
+		// 페이징 처리용 정보를 jsp 전달
+		model.addAttribute("total", total);
+		model.addAttribute("maxpage", maxpage);
+
+		model.addAttribute("startbk", startbk);
+		model.addAttribute("endbk", endbk);
+
+		model.addAttribute("currentpg", page);
+		model.addAttribute("kind", kind);
+		
+		return "student/apply/apply";
+	}
+	
+	//학생 수강 신청 처리
+	@RequestMapping(value = "/apply/apply.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String applyApplyOk(HttpSession session,
+			@RequestParam(value="uno", required=false) int uno,
+			@RequestParam(value="sno", required=false) int sno) {
+		
+		//유저 로그인 확인 여부를 위한 조회
+		UserVO login = (UserVO)session.getAttribute("login");
+		//로그인 정보 없으면 로그인 페이지로 이동
+		if(login == null) return "redirect:/login.do";
+		
+		//수강 신청한 학생 수 조회
+		int applycnt = studentService.ApplySelect(sno);
+		
+		//수강 신청 인원 초과 시 수강 신청을 막기 위한 단건 조회
+		SubjectVO subject = studentService.SubjectSelectOne(sno);
+		
+		//오늘 날짜 YYMMDD 형식의 문자열로 변환
+		int today = Integer.parseInt(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+		int astart = Integer.parseInt(subject.getAstart());
+		int aend = Integer.parseInt(subject.getAend());
+		
+		if(applycnt < subject.getCnt() && today >= astart && today <= aend) {
+			studentService.SubjectApply(login.getUno(), sno);
+			return "OK";
+		}else {
+			if(aend > today) return "END";
+			if(applycnt >= subject.getCnt()) return "OVER";
+			return "X";
+		}
+		
+	}
+	
+	//학생 수강 신청 취소 처리
+	@RequestMapping(value = "/apply/applyCancel.do")
+	@ResponseBody
+	public String applyDelete(HttpSession session,
+			@RequestParam(value="uno", required=false) int uno,
+			@RequestParam(value="sno", required=false) int sno) {
+		
+		//유저 로그인 확인 여부를 위한 조회
+		UserVO login = (UserVO)session.getAttribute("login");
+		//로그인 정보 없으면 로그인 페이지로 이동
+		if(login == null) return "redirect:/login.do";
+		
+		//수강 신청 인원 초과 시 수강 신청을 막기 위한 단건 조회
+		SubjectVO subject = studentService.SubjectSelectOne(sno);
+		
+		//오늘 날짜 YYMMDD 형식의 문자열로 변환
+		int today = Integer.parseInt(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+		int astart = Integer.parseInt(subject.getAstart());
+		int aend = Integer.parseInt(subject.getAend());
+		
+		if(today >= astart && today <= aend) {
+			studentService.ApplyDelete(login.getUno(), sno);
+			return "OK";
+		}else {
+			if(aend > today) return "END";
+			return "X";
+		}
+	}
+	
+	//수강 신청한 과제 리스트 조회 페이지
+	@RequestMapping(value = "/task/list.do")
+	public String taskList(HttpSession session, Model model, String key,
+			@RequestParam(defaultValue = "1") int page, 
+			@RequestParam(defaultValue = "all")String kind,
+			@RequestParam(value="sno", required=false, defaultValue="0") int sno) {
+		
+		//유저 로그인 확인 여부를 위한 조회
+		UserVO login = (UserVO)session.getAttribute("login");
+		//로그인 정보 없으면 로그인 페이지로 이동
+		if(login == null) return "redirect:/login.do";
+		
+		int perPage = 10;
+		int start = (page - 1) * perPage;
+		
+		if(key == null) key = "";
+		//나의 과제 조회
+		List<TaskVO> tasks = studentService.TaskList(login.getUno(), sno, start, perPage, kind, key);
+		
+		//전체 과제 수 조회
+		int total = studentService.TaskCount(login.getUno(), sno, start, perPage, kind, key);
+		
+		int maxpage = total / perPage;
+		if (total % perPage != 0) maxpage++;
+
+		// 페이징 블럭 계산 (시작블럭, 끝블럭)
+		//(page - 1)을 해야 10, 20, 30 단위 페이지에서도 블록이 유지
+		int startbk = ((page - 1) / 5) * 5 + 1;
+		//끝블럭 = 시작블럭 + 10 - 1
+		int endbk = startbk + 4;
+		//끝블럭 > 전체페이지 갯수 크면
+		if (endbk > maxpage) {
+			endbk = maxpage;
+		}
+		
+		model.addAttribute("tasks", tasks);
+		
+		// 페이징 처리용 정보를 jsp 전달
+		model.addAttribute("total", total);
+		model.addAttribute("maxpage", maxpage);
+
+		model.addAttribute("startbk", startbk);
+		model.addAttribute("endbk", endbk);
+
+		model.addAttribute("currentpg", page);
+		model.addAttribute("kind", kind);
+		model.addAttribute("key", key);
+		
+		return "student/task/list";
+	}
+	
+	//첨부파일 다운로드
+	@RequestMapping(value = "/task/down.do")
+	public String DownLoad(HttpServletResponse response,
+			@RequestParam(required = false, defaultValue="0") int smno,
+			@RequestParam(required = false, defaultValue="0") int tno,
+			@RequestParam(required = false, defaultValue="0") int type
+			) throws IOException {
+		
+		TaskVO task;
+		SubmissionVO submission;
+		String originalFileName = null;
+		String savedFileName = null;
+		
+		//과제 또는 제출한 과제 정보를 얻는다.
+		switch(type) {
+		case 0 : //교수가 올린 첨부파일 : 0
+			task = studentService.TaskInfo(tno);
+			originalFileName = task.getFname();
+			savedFileName = task.getPname();
+			break;
+		case 1 : //학생이 제출한 과제 첨부파일 : 1
+			submission = studentService.SubmissionDownInfo(smno);
+			originalFileName = submission.getFname();
+			savedFileName = submission.getPname();
+			break;
+		case 2 : //교수가 피드백한 첨부파일 : 2
+			submission = studentService.SubmissionDownInfo(smno);
+			originalFileName = submission.getFfname();
+			savedFileName = submission.getFpname();
+			break;
+		}
+		
+		//다운로드 파일 없을 때 URL 직접 접속으로 다운로드 시도 시 오류 방지
+		if (savedFileName == null || savedFileName.isEmpty() || originalFileName == null) {
+			return "redirect:/student/task/list.do";
+		}
+		
+		File file = new File(uploadPath, savedFileName);
+
+		//파일명 인코딩
+		String encodedFileName = new String(originalFileName.getBytes("UTF-8"), "ISO-8859-1");
+
+		//브라우저에게 다운로드 해야 하는 파일이라고 헤더 전송
+		response.setContentType("application/download");
+		response.setContentLength((int) file.length());
+		response.setHeader("Content-Disposition", "attachment;filename=\"" + encodedFileName + "\"");
+
+		//실제 파일을 브라우저에 전송
+		OutputStream os = response.getOutputStream();
+
+		FileInputStream fis = new FileInputStream(file);
+		FileCopyUtils.copy(fis, os);
+		
+		return null;
+		
+	}
+	
+	//내가 선택한 과목의 과제 상세 페이지
+	@RequestMapping(value = "/task/t_view.do")
+	public String taskTview(Model model, HttpSession session, RedirectAttributes reAttr,
+			@RequestParam(value="tno", required=false, defaultValue="0") int tno) {
+		
+		//유저 로그인 확인 여부를 위한 조회
+		UserVO login = (UserVO)session.getAttribute("login");
+		//로그인 정보 없으면 로그인 페이지로 이동
+		if(login == null) return "redirect:/login.do";
+		
+		//수강 신청 여부 체크
+		int count = studentService.SubjectApplyCheck(login.getUno(), tno);
+		//수강 신청 안한 학생이면 수강 신청 페이지로 되돌림
+		if(count == 0) {
+			reAttr.addFlashAttribute("msg", "수강 신청한 학생이 아닙니다.");
+			return "redirect:/student/apply/apply.do";
+		}
+		
+		TaskVO task = studentService.TaskInfo(tno);
+		
+		File file = new File(uploadPath + "/" + task.getPname());
+		
+		if(file.exists()) {
+			long sizeCalc =  file.length();
+			String fileSize = FileUtil.getFileSize(sizeCalc);
+			task.setFsize(fileSize);
+		} else {
+			task.setFsize("파일 없음");
+		}
+		
+		model.addAttribute("task", task);
+		
+		return "student/task/t_view";
+	}
+	
+	//내가 선택한 과제의 과제 작성 페이지
+	@RequestMapping(value = "/task/write.do")
+	public String taskWrite(Model model, HttpSession session, RedirectAttributes reAttr,
+			@RequestParam(value="tno", required=false, defaultValue="0") int tno) {
+
+		//유저 로그인 확인 여부를 위한 조회
+		UserVO login = (UserVO)session.getAttribute("login");
+		//로그인 정보 없으면 로그인 페이지로 이동
+		if(login == null) return "redirect:/login.do";
+		
+		//수강 신청 여부 체크
+		int count = studentService.SubjectApplyCheck(login.getUno(), tno);
+		//수강 신청 안한 학생이면 수강 신청 페이지로 되돌림
+		if(count == 0) {
+			reAttr.addFlashAttribute("msg", "수강 신청한 학생이 아닙니다.");
+			return "redirect:/student/apply/apply.do";
+		}
+		
+		SubmissionVO submission = studentService.SubmissionInfo(login.getUno(), tno);
+		//과제 작성을 했거나 과제 작성자가 내가 아닌 경우 수강 신청 페이지로 되돌림
+		if(submission != null) {
+			if(submission.getUno() != login.getUno()) {
+				reAttr.addFlashAttribute("msg", "내 과제 아니거나 이미 작성한 과제입니다.");
+				return "redirect:/student/apply/apply.do";
+			}
+		}
+		
+		TaskVO task = studentService.TaskInfo(tno);
+		
+		model.addAttribute("task", task);
+		
+		return "student/task/write";
+		
+	}
+	
+	//내가 선택한 과제의 과제 작성 처리
+	@RequestMapping(value = "/task/writeok.do", method = RequestMethod.POST)
+	public String taskWriteOk(SubmissionVO vo, HttpSession session,
+			@RequestParam(value="tno", required=false, defaultValue="0") int tno,
+			@RequestParam("attach") MultipartFile file, RedirectAttributes reAttr 			
+			) throws IllegalStateException, IOException {
+		
+		//유저 로그인 확인 여부를 위한 조회
+		UserVO login = (UserVO)session.getAttribute("login");
+		//로그인 정보 없으면 로그인 페이지로 이동
+		if(login == null) return "redirect:/login.do";
+		
+		//수강 신청 여부 체크
+		int count = studentService.SubjectApplyCheck(login.getUno(), tno);
+		//수강 신청 안한 학생이면 수강 신청 페이지로 되돌림
+		if(count == 0) {
+			reAttr.addFlashAttribute("msg", "수강 신청한 학생이 아닙니다.");
+			return "redirect:/student/apply/apply.do";		
+		}
+		//과제 제출 마감일자 조회를 위한 task 테이블 단건 조회
+		TaskVO task = studentService.TaskInfo(tno);
+		
+		//오늘 날짜 YYMMDD 형식의 문자열로 변환
+		int today = Integer.parseInt(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+		int edate = Integer.parseInt(task.getEdate().replace("-", ""));
+		
+		//마감 기한이 지나지 않은 경우 인서트 처리
+		if(today < edate) {
+			if (file != null) {
+				// 업로드된 원본 파일 이름 가져오기
+				String originalFileName = file.getOriginalFilename();
+		
+				UUID uuid = UUID.randomUUID();
+				String savedFileName = uuid.toString();
+
+				String saveFileName = uploadPath + "\\" + savedFileName;
+
+				File newFile = new File(saveFileName);
+
+				file.transferTo(newFile);
+
+				vo.setFname(originalFileName);
+				vo.setPname(savedFileName);
+			}
+			studentService.SubmissionInsert(login.getUno(), tno, vo);
+			
+			return "redirect:/student/task/view.do?tno=" + vo.getTno();
+		
+		}else {
+			return "X";
+		}
+		
+		
+	}
+	
+	//내가 제출한 과제 단건 조회
+	@RequestMapping(value = "/task/view.do")
+	public String taskView(HttpSession session, Model model, int tno) {
+		
+		//유저 로그인 확인 여부를 위한 조회
+		UserVO login = (UserVO)session.getAttribute("login");
+		//로그인 정보 없으면 로그인 페이지로 이동
+		if(login == null) return "redirect:/login.do";
+		
+		//수강 신청 여부 체크
+		int count = studentService.SubjectApplyCheck(login.getUno(), tno);
+		//수강 신청 안한 학생이면 수강 신청 페이지로 되돌림
+		if(count == 0) return "redirect:/student/apply/apply.do";		
+		//과제 상세조회에서 과제 컬럼을 가져오기 위한 과제 단건 조회
+		TaskVO task = studentService.TaskInfo(tno);
+		//과제 상세조회에서 제출 관련 컬럼을 가져오기 위한 단건 조회
+		SubmissionVO submission = studentService.SubmissionInfo(login.getUno(), tno);
+		
+		File file = new File(uploadPath + "/" + submission.getPname());
+		File ffile = new File(uploadPath + "/" + submission.getFpname());
+		long sizeCalc;
+		String fileSize;
+		
+		//내가 올린 과제 파일 사이즈
+		if(file.exists()) {
+			sizeCalc =  file.length();
+			fileSize = FileUtil.getFileSize(sizeCalc);
+			submission.setFsize(fileSize);
+		} else {
+			submission.setFsize("파일 없음");
+		}
+		
+		//피드백 파일 사이즈
+		if(ffile.exists()) {
+			sizeCalc = ffile.length();
+			fileSize = FileUtil.getFileSize(sizeCalc);
+			submission.setFfsize(fileSize);
+		} else {
+			submission.setFfsize("파일 없음");
+		}
+		
+		model.addAttribute("task", task);
+		model.addAttribute("submission", submission);
+		
+		return "student/task/view";
+		
+	}
+	
+	//내가 제출한 과제 수정 페이지
+	@RequestMapping(value = "/task/update.do")
+	public String taskUpdate(HttpSession session, Model model, RedirectAttributes reAttr,
+			@RequestParam(value="tno", required=false, defaultValue="0") int tno
+			) {
+		
+		//유저 로그인 확인 여부를 위한 조회
+		UserVO login = (UserVO)session.getAttribute("login");
+		//로그인 정보 없으면 로그인 페이지로 이동
+		if(login == null) return "redirect:/login.do";
+		
+		//수강 신청 여부 체크
+		int count = studentService.SubjectApplyCheck(login.getUno(), tno);
+		
+		//수강 신청 안한 학생이면 수강 신청 페이지로 되돌림
+		if(count == 0) {
+			reAttr.addFlashAttribute("msg", "수강 신청한 학생이 아닙니다.");
+			return "redirect:/student/apply/apply.do";
+		}
+		
+		//제출한 과제 정보 불러오기
+		SubmissionVO submission = studentService.SubmissionInfo(login.getUno(), tno);
+		
+		//과제 제출한 학생이 아닐 경우 수강 신청 페이지로 되돌림
+		if(submission.getUno() != login.getUno()) {
+			reAttr.addFlashAttribute("msg", "내 과제가 아닙니다.");
+			return "redirect:/student/apply/apply.do";
+		}
+		
+		model.addAttribute("submission", submission);
+		return "student/task/update";
+		
+	}
+	//과제 수정 처리
+	@RequestMapping(value = "/task/updateok.do")
+	public String taskUpdateOk(HttpSession session, SubmissionVO vo,
+			@RequestParam("attach") MultipartFile file, RedirectAttributes reAttr,
+			@RequestParam(value="tno", required=false, defaultValue="0") int tno,
+			@RequestParam(value="nowfile", required=false, defaultValue="") String nowfile
+			) throws IllegalStateException, IOException {
+		
+		//유저 로그인 확인 여부를 위한 조회
+		UserVO login = (UserVO)session.getAttribute("login");
+		//로그인 정보 없으면 로그인 페이지로 이동
+		if(login == null) return "redirect:/login.do";
+		
+		//수강 신청 여부 체크
+		int count = studentService.SubjectApplyCheck(login.getUno(), tno);
+		
+		//수강 신청 안한 학생이면 수강 신청 페이지로 되돌림
+		if(count == 0) {
+			reAttr.addFlashAttribute("msg", "수강 신청한 학생이 아닙니다.");
+			return "redirect:/student/apply/apply.do";
+		}
+		
+		//수정해야될 과제 정보 불러오기
+		SubmissionVO submission = studentService.SubmissionInfo(login.getUno(), tno);
+
+		//과제 상세조회에서 과제 컬럼을 가져오기 위한 과제 단건 조회
+		TaskVO task = studentService.TaskInfo(tno);
+		
+		//과제 제출한 학생이 아닐 경우 수강 신청 페이지로 되돌림
+		if(submission.getUno() != login.getUno()) {
+			reAttr.addFlashAttribute("msg", "내 과제가 아닙니다.");
+			return "redirect:/student/apply/apply.do";
+		}
+		
+		//기존에 서버에 저장되어 있던 물리 파일명 보관
+		String oldPname = submission.getPname();
+		
+		//오늘 날짜 YYMMDD 형식의 문자열로 변환
+		int today = Integer.parseInt(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+		int edate = Integer.parseInt(task.getEdate().replace("-", ""));
+		
+		if(today > edate) {
+			reAttr.addFlashAttribute("msg", "과제 제출 기한이 지났습니다.");
+			return "redirect:/student/apply/apply.do";
+		}
+		
+		//파일을 새로 업로드할 경우
+		if (file != null && !file.isEmpty()) {
+			//기존 파일 있으면 서버에서 삭제
+			if (oldPname != null && !oldPname.isEmpty()) {
+				File oldFile = new File(uploadPath, oldPname);
+				if (oldFile.exists()) oldFile.delete();
+			}
+			// 업로드된 원본 파일 이름 가져오기
+			String originalFileName = file.getOriginalFilename();
+	
+			UUID uuid = UUID.randomUUID();
+			String savedFileName = uuid.toString();
+	
+			String saveFileName = uploadPath + "\\" + savedFileName;
+	
+			File newFile = new File(saveFileName);
+	
+			file.transferTo(newFile);
+	
+			vo.setFname(originalFileName);
+			vo.setPname(savedFileName);
+			
+		//기존 올린 첨부파일이 없는 경우
+		} else if(nowfile == null || nowfile.equals("")){
+			if (oldPname != null && !oldPname.isEmpty()) {
+				File oldFile = new File(uploadPath, oldPname);
+				if (oldFile.exists()) oldFile.delete();
+			}
+			vo.setFname(null);
+			vo.setPname(null);
+		}
+		else { //파일을 새롭게 업로드 하지 않을 경우
+			vo.setPname(submission.getPname());
+			vo.setFname(submission.getFname());
+		}
+		
+		vo.setUno(login.getUno());
+		vo.setTno(tno);
+		
+		studentService.SubmissionUpdate(vo);
+		
+		return "redirect:/student/task/view.do?tno=" + tno;
+		
+	}
+	
+	//내가 제출한 과제 삭제
+	@RequestMapping(value = "/task/delete.do")
+	public String taskDeleteOk(HttpSession session, RedirectAttributes reAttr,
+			@RequestParam(value="tno", required=false, defaultValue="0") int tno) {
+		//유저 로그인 확인 여부를 위한 조회
+		UserVO login = (UserVO)session.getAttribute("login");
+		//로그인 정보 없으면 로그인 페이지로 이동
+		if(login == null) return "redirect:/login.do";
+		
+		//수강 신청 여부 체크
+		int count = studentService.SubjectApplyCheck(login.getUno(), tno);
+		
+		//수강 신청 안한 학생이면 수강 신청 페이지로 되돌림
+		if(count == 0) {
+			reAttr.addFlashAttribute("msg", "수강 신청한 학생이 아닙니다.");
+			return "redirect:/student/apply/apply.do";
+		}
+
+		//수정해야될 과제 정보 불러오기
+		SubmissionVO submission = studentService.SubmissionInfo(login.getUno(), tno);
+
+		//과제 제출한 학생이 아닐 경우 수강 신청 페이지로 되돌림
+		if(submission.getUno() != login.getUno()) {
+			reAttr.addFlashAttribute("msg", "내 과제가 아닙니다.");
+			return "redirect:/student/apply/apply.do";
+		}
+		
+		//내가 제출한 과제 삭제 시 외래키 위반(이미 채점 완료의 경우) 또는 삭제 오류 방지
+		try {
+			studentService.SubmissionDel(login.getUno(), tno);
+			reAttr.addFlashAttribute("msg", "제출한 과제가 삭제되었습니다.");
+		}catch(DataIntegrityViolationException e) {
+			reAttr.addFlashAttribute("msg", "이미 채점이 완료되어 삭제할 수 없습니다.");
+			return "redirect:/student/task/view.do?tno=" + tno;
+		}catch(Exception e) {
+			reAttr.addFlashAttribute("msg", "삭제 중 오류가 발생했습니다.");
+			return "redirect:/student/apply/apply.do";
+		}
+		
+		return "redirect:/student/task/list.do";
+	
+	}
+	
+	@RequestMapping(value = "/user/update.do")
+	public String userUpdate() {
+		return "student/user/update";
+	}
+	
+	@RequestMapping(value = "/user/pwmatch.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String PwMatch(String id, String pw, HttpSession session) {
+		UserVO login = (UserVO)session.getAttribute("login");
+		if(login == null) return "redirect:/user/login.do";
+		boolean match = studentService.PwMatch(id, pw);
+		if( match == true) {
+			return "O";
+		}else {
+			return "X";
+		}
+	}
+	
+	@RequestMapping(value = "/user/updateok.do")
+	public String Updateok(String uid, Model model) {
+		UserVO vo = new UserVO();
+		vo.setUid(uid);
+		UserVO UserInfo = studentService.UserInfo(vo);
+		
+		model.addAttribute("num", UserInfo.getNum());
+		model.addAttribute("name", UserInfo.getName());
+		model.addAttribute("id", UserInfo.getUid());
+		model.addAttribute("hp", UserInfo.getHp());
+		model.addAttribute("major", UserInfo.getMajor());
+		return "student/user/updateok";
+	}
+	
+	@RequestMapping(value = "/user/infoupdate.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String InfoUpdate(String id, String hp, String pw) {
+		studentService.InfoUpdate(id, hp, pw);
+		return "OK";
+	}
+	
+}

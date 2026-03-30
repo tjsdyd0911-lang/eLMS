@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="elms.teacher">
+	<select id="match" parameterType="com.elms.vo.UserVO" resultType="java.lang.Integer">
+		select count(*) from user 
+		where uid = #{uid} and pw = md5(#{pw})
+	</select>
+	
+	<select id="info" parameterType="com.elms.vo.UserVO" resultType="com.elms.vo.UserVO">
+		select * from user where uid = #{uid}
+	</select>
+	
+	<update id="infoupdate" parameterType="com.elms.vo.UserVO">
+		update user 
+		set hp = #{hp}, pw = md5(#{pw}) 
+		where uid = #{uid}
+	</update>
+	
+	<select id="snamecheck" parameterType="java.lang.String" resultType="java.lang.Integer">
+		select count(*) from subject where sname = #{sname}
+	</select>
+	
+	<insert id="subjectinsert" parameterType="com.elms.vo.SubjectVO" useGeneratedKeys="true" keyProperty="sno">
+		insert into subject(sno, sname, astart, aend, sstart, send, cnt, uno) 
+		values(#{sno}, #{sname}, #{astart}, #{aend}, #{sstart}, #{send}, #{cnt}, #{uno}) 
+	</insert>
+	
+	<select id="subjectlist" parameterType="com.elms.vo.SearchVO" resultType="com.elms.vo.SubjectVO">
+		select sno, sname, date(astart) as astart, date(aend) as aend, date(sstart) as sstart, date(send) as send, cnt
+		from subject
+		where uno = #{no}
+		order by date(aend) desc, date(send) desc
+		limit #{offset}, 10
+	</select>
+	
+	<select id="subjecttotal" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+		select count(*) from subject where uno = #{uno} 
+	</select>
+	
+	<select id="applycount" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+		select count(*) from apply where sno = #{sno}
+	</select>
+	
+	<delete id="subjectdelete" parameterType="java.lang.String">
+		delete from subject where sno = #{sno}
+	</delete>
+	
+	<select id="selectsubject" parameterType="java.lang.Integer" resultType="com.elms.vo.SubjectVO">
+		select * from subject where sno = #{sno}
+	</select>
+	
+	<select id="applystudent" parameterType="java.lang.Integer" resultType="com.elms.vo.UserVO">
+		select u.uno, u.num, u.name, u.major from user u
+		inner join apply a on a.uno = u.uno
+		inner join subject s on s.sno = a.sno
+		where a.sno = #{sno}
+	</select>	
+	
+	<select id="subjectsearch" parameterType="com.elms.vo.SubjectVO" resultType="com.elms.vo.SubjectVO">
+		select sno, sname, date(astart) as astart, date(aend) as aend, date(sstart) as sstart, date(send) as send, cnt
+		from subject 
+		where uno = #{uno} and sno = #{sno}
+	</select>
+	
+	<update id="subjectupdate" parameterType="com.elms.vo.SubjectVO">
+		update subject 
+		set sname = #{sname}, astart = #{astart}, aend = #{aend}, sstart = #{sstart}, send = #{send}, cnt = #{cnt}
+		where sno = #{sno} and uno = #{uno}
+	</update>
+	
+	<select id="tasklist" parameterType="map" resultType="com.elms.vo.TaskVO">
+		select t.tno, t.sno, t.title, s.uno,
+		date(t.edate) as edate, t.ttype
+		from task t
+		inner join subject s on s.sno = t.sno
+		where uno = #{uno}
+		<if test='!key.equals("")'>
+			and title like '%${ key }%'
+		</if>
+		<if test="sno != 0">
+			and t.sno = #{sno}
+		</if>
+		order by edate desc
+		limit #{start}, #{perPage}
+	</select>
+	
+	<select id="submitcount" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+		select count(*) from submission where tno = #{tno}
+	</select>
+
+	<select id="scorecount" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+		select count(*) from submission where tno = #{tno} and scheck = 'Y';
+	</select>
+	
+	<select id="tasktotal" parameterType="Map" resultType="java.lang.Integer">
+		select count(*) from task where sno = #{sno} 
+	</select>
+	
+	<select id="taskview" parameterType="java.lang.Integer" resultType="com.elms.vo.TaskVO">
+		select tno, sno, title, content, date(edate) as edate, ttype, stype, pname, fname
+		from task 
+		where tno = #{tno}
+	</select>
+	
+	<select id="mysubject" parameterType="java.lang.Integer" resultType="com.elms.vo.SubjectVO">
+		select * from subject where uno = #{uno}
+	</select>
+	
+	<delete id="taskdelete" parameterType="com.elms.vo.SearchVO">
+		delete t from task t
+		join subject s on t.sno = s.sno
+		where s.uno=#{no} and t.tno = #{temp}
+	</delete>
+	
+	<update id="taskupdate" parameterType="com.elms.vo.TaskVO">
+		update task
+		set title = #{title}, content = #{content}, edate = #{edate}, ttype = #{ttype}, stype = #{stype}
+		<if test='fname != null and !fname.equals("")'>
+		,pname = #{pname} ,fname = #{fname}
+		</if>
+		where tno = #{tno}
+	</update>
+	
+	<insert id="taskinsert" parameterType="com.elms.vo.TaskVO" useGeneratedKeys="true" keyProperty="tno">
+		insert into task(sno, title, content, ttype, stype, edate, wdate, fname, pname)
+		values(#{sno}, #{title}, #{content}, #{ttype}, #{stype}, #{edate}, now()
+		<if test='fname != null and !fname.equals("")'>
+		,#{fname} ,#{pname} 
+		</if> 
+		<if test='fname == null or fname.equals("")'>
+		,null, null
+		</if>
+		)	
+	</insert>
+	
+	<select id="slisttotal" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+		select count(*) from submission where tno = #{tno} 
+	</select>
+	
+	<select id="slist" parameterType="com.elms.vo.SearchVO" resultType="com.elms.vo.SubmissionVO">
+		select
+		 u.name,
+		 u.major,
+		 u.num,
+		 IFNULL(s.score, '미채점'),
+		 IFNULL(s.title, '미제출'),
+		 u.uno,
+		 t.tno,
+		 s.score,
+		 s.ffname,
+		CASE 
+         WHEN s.smno IS NULL THEN '미제출'
+         ELSE '제출완료'
+        END AS submit
+        FROM apply a
+        JOIN task t ON a.sno = t.sno
+        JOIN user u ON a.uno = u.uno
+        LEFT JOIN submission s ON t.tno = s.tno AND u.uno = s.uno
+        WHERE t.tno = #{no}  AND t.sno = #{temp} AND utype = 'S'
+        order by s.smdate
+		limit #{offset}, 10
+	</select>
+	
+	<select id="loadtask" parameterType="com.elms.vo.SubmissionVO" resultType="com.elms.vo.SubmissionVO">
+		select * from submission s
+		join user u on s.uno = u.uno
+		left join task t on t.tno = s.tno
+		where s.uno = #{uno} and s.tno = #{tno} and utype = 'S'
+	</select>
+	
+	<update id="scoreupdate" parameterType="com.elms.vo.SubmissionVO">
+		update submission set score = #{score}, feedback = #{feedback}, scheck = #{scheck}
+		<if test='ffname != null and !ffname.equals("")'>
+		, fpname = #{fpname}, ffname = #{ffname}
+		</if> 
+		where smno = #{smno}
+	</update>
+	
+	<select id="submittask" parameterType="java.lang.Integer" resultType="com.elms.vo.SubmissionVO">
+		select * from submission where smno = #{smno}
+	</select>
+</mapper>

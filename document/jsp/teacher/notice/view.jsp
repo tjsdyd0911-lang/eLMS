@@ -1,0 +1,51 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ include file="../../include/teacher/head.jsp" %>
+    <div class="main-container">
+      <aside>
+        <div class="side-menu-top">
+         	<a href="../notice/list.jsp" class="menu-item active">공지사항</a>
+            <a href="../subject/list.jsp" class="menu-item">과목 관리</a>
+            <a href="../task/list.jsp" class="menu-item">과제 게시판</a>
+        </div>
+<%@ include file="../../include/teacher/side.jsp" %>           
+      </aside>
+
+        <main>
+            <div class="content-header">
+                <h2 class="view-title">2024년도 1학기 국가장학금 신청 기간 및 방법 안내</h2>
+                <nav aria-label="breadcrumb">
+                    <div class="breadcrumb">
+                        <a href="list.jsp">공지사항</a> &nbsp; > &nbsp; <span>국가장학금 공지</span>
+                    </div>
+                </nav>
+            </div>
+
+            <div class="view-meta">
+                <span><b>번호</b> 3</span>
+                <span><b>작성일</b> 2024-05-20</span>
+                <span><b>작성자</b> 관리자</span>
+            </div>
+            
+            <hr class="view-divider">
+
+            <div class="view-content">
+                안녕하세요. 이젠대학교 운영팀입니다.<br>
+                2024년도 1학기 국가장학금 신청과 관련하여 다음과 같이 안내드리오니 일정에 맞춰 신청하시기 바랍니다.<br><br>
+                1. 신청 대상: 재학생, 신입생, 편입생, 재입학생, 복학생<br>
+                2. 신청 기간: 2024년 5월 20일 ~ 6월 15일<br>
+                3. 신청 방법: 한국장학재단 홈페이지 및 모바일 앱을 통한 온라인 신청<br>
+                4. 서류 제출 및 가구원 동의: 2024년 6월 20일 18시까지<br><br>
+                장학금 혜택을 놓치지 않도록 기한 내 반드시 신청을 완료해 주시기 바랍니다.<br>
+                기타 문의사항은 학생 복지과로 연락 바랍니다.<br><br>
+                감사합니다.
+            </div>
+
+            <div class="view-footer">
+                <button type="button" class="btn-list" onclick="location.href='list.jsp'">목록으로</button>&nbsp;&nbsp;
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

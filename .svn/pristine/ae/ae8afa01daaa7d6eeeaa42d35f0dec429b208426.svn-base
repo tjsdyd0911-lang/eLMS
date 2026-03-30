@@ -1,0 +1,200 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ include file="../include/user/head.jsp" %>
+<form id="findFrm" name="findFrm" method="post" action="pw_findok.do">
+<input type="hidden" id="find_uid" name="uid">
+<input type="hidden" id="find_num" name="num">
+<input type="hidden" id="find_name" name="name">
+<input type="hidden" id="find_hp" name="hp">
+</form>
+<script>
+	var uType = "S";  //구분(S-학생, T-교사, A-관리자)
+	
+	function PwFind(){
+		if( $("#uid").val() == "" ){
+			$("#uid").focus()
+			alert("이메일(ID)를 입력하세요.")
+			return;
+		}
+		
+		if( $("#num").val() == "" ){
+			if( $("#idLabel").html().trim() == "학번"){
+				$("#num").focus()
+				alert("학번을 입력하세요.")
+				return;	
+			}else{
+				$("#num").focus()
+				alert("사번을 입력하세요.")
+				return;
+			}
+		}
+		
+		if( $("#name").val() == "" ){
+			$("#name").focus()
+			alert("이름을 입력하세요.")
+			return;
+		}
+		
+		if( $("#hp").val() == "" ){
+			$("#hp").focus()
+			alert("핸드폰 번호를 입력하세요.")
+			return;
+		}
+
+		if( numCheck() == false) return; //학번 8자리 검사 함수 호출
+		if( emailCheck() == false ) return; //이메일 유효성 검사 함수 호출
+		
+		$.ajax({
+			url: "pw_find_check.do",
+			type: "post",
+			dataType: "html",
+			data :
+			{
+				utype : uType,				
+				uid   : $("#uid").val(),
+				num   : $("#num").val(),
+				name  : $("#name").val(),
+				hp    : $("#hp").val()
+			},
+			success : function(data)
+			{
+				data = data.trim();
+				if( data == "FIND" )
+				{
+					$("#find_uid").val($("#uid").val());
+					$("#find_num").val($("#num").val());
+					$("#find_name").val($("#name").val());
+					$("#find_hp").val($("#hp").val());
+					$("#findFrm").submit();
+				}else
+				{
+					alert("입력하신 정보가 일치하지 않습니다.");
+					$("#uid").focus();
+				}
+			},
+			error : function(xhr,status,error)
+			{
+				alert("실패");
+			}
+		});
+	}
+	
+	//공백 처리하는 함수
+	function SetBlank(obj)
+	{
+		const value = $(obj).val().replace(/\s/g,"");
+		$(obj).val(value);
+	}
+	
+	//학번 최소 글자수(8자리) 검사, 영문숫자 검사 함수
+	function numCheck() {
+		const num = $("#num").val();
+		const reg = /^[a-zA-Z0-9]+$/; // 영문/숫자만 있는지 체크하는 정규식
+		  
+		if (num.length !== 8) {
+		  alert("영문과 숫자 8자리를 입력하세요.");
+		  $("#num").focus();
+		  return false; 
+		}
+		return true;
+	}
+
+	//이메일 형식 체크를 위한 정규식	
+	function emailCheck() {
+		const email = $("#uid").val().replace(/\s/g,""); //실시간으로 공백 지우는 기능 
+		$("#uid").val(email); //공백 지운 값을 그대로 돌려줌
+		  
+		const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+		
+		if (!emailRegex.test(email)) {
+			alert("올바른 이메일 형식이 아닙니다. (예: example@email.com)");
+			$("#uid").focus();
+			return false;
+		}
+		return true;
+	}
+	
+	function setinfo(uid, num, name, hp){
+		$("#uid").val(uid);
+		$("#num").val(num);
+		$("#name").val(name);
+		$("#hp").val(hp);
+	}
+</script>
+        <main>
+            <div class="pw-find-card">
+                <h2>비밀번호찾기</h2>
+                
+                <!-- 학생/교수 선택 캡슐 -->
+                <div class="toggle-capsule">
+                    <div id="btnStudent" class="type-item active" onclick="switchUserType('student')">
+                        <span class="dot-radio"></span> 학생
+                    </div>
+                    <div id="btnProfessor" class="type-item" onclick="switchUserType('professor')">
+                        <span class="dot-radio"></span> 교수
+                    </div>
+                </div>
+
+                <!-- 폼 시작 -->
+                <form>
+                    <div class="text-start">
+                        <label class="form-label">이메일 주소(ID)</label>
+                        <input type="email" id="uid" name="uid" maxlength="50" class="form-control custom-input" placeholder="example@ezen.ac.kr" onkeyup="SetBlank(this);">
+                    </div>
+                    
+                    <div class="text-start">
+                        <label class="form-label" id="idLabel">학번</label>
+                        <input type="text" id="num" name="num" maxlength="8" class="form-control custom-input" placeholder="사번 8자리를 입력하세요" onkeyup="SetBlank(this);">
+                    </div>
+
+                    <div class="text-start">
+                        <label class="form-label">이름</label>
+                        <input type="text" id="name" name="name" class="form-control custom-input" placeholder="실명을 입력하세요" onkeyup="SetBlank(this);">
+                    </div>
+
+                    <div class="text-start">
+                        <label class="form-label">핸드폰 번호</label>
+                        <input type="text" id="hp" name="hp" maxlength="13" class="form-control custom-input" placeholder="010-0000-0000">
+                    </div>
+                    <br><a href="javascript:setinfo('std120@univ.ac.kr', 'S2024120', '허학생', '010-2222-0120');">비밀번호 찾기</a>
+                    <button type="button" class="btn btn-reset" onclick="PwFind();">비밀번호 재설정</button>
+                </form>
+
+                <a href="login.do" class="footer-link">로그인하러 가기</a>
+            </div>
+        </main>
+    </div>
+
+    <!-- 부트스트랩 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // 학생 vs 교수 전환 함수
+        function switchUserType(type) {
+        	$("input").val("");
+        	
+        	if (type === 'student') {
+                // 학생 선택 시
+            	uType = "S";                
+            	$("#idLabel").text('학번');
+            	$("#num").attr('placeholder', '학번 8자리를 입력하세요');
+            	$("#btnStudent").addClass('active');
+            	$("#btnProfessor").removeClass('active');
+           	 	$("#btnStudent").find('.dot-icon').css('background', '#333');
+                $("#btnProfessor").find('.dot-icon').css('background', 'transparent');
+                $("#btnProfessor").find('.dot-icon').css('border', '1px solid #ccc');
+            } else {
+                // 교수 선택 시
+            	uType = "T";                
+            	$("#idLabel").text('사번');
+                $("#num").attr('placeholder', '사번 8자리를 입력하세요');
+                $("#btnProfessor").addClass('active');
+                $("#btnStudent").removeClass('active');
+                $("#btnProfessor").find('.dot-icon').css('background', '#333');
+                $("#btnStudent").find('.dot-icon').css('background', 'transparent');
+                $("#btnStudent").find('.dot-icon').css('border', '1px solid #ccc');
+            }
+        }
+    </script>
+</body>
+</html>

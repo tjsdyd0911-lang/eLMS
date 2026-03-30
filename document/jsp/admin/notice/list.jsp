@@ -1,0 +1,61 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ include file="../../include/admin/head.jsp" %>
+    <div class="main-container">
+        <aside>
+            <div class="side-menu-top">
+                <a href="../notice/list.jsp" class="menu-item active">공지사항</a>
+                <a href="../teacher/list.jsp" class="menu-item">교사 관리</a>
+                <a href="../student/list.jsp" class="menu-item">학생 관리</a>
+            </div>
+        </aside>
+		<!-- 본문 내용 -->
+        <main>
+        	<div class="d-flex justify-content-between align-items-center">
+            	<div class="content-title">공지사항</div>
+					<button class="btn-batch-approve" onclick="document.location='write.jsp'">공지사항 작성</button>
+			</div>
+			<br>
+			
+			<!-- 테이블 -->
+            <table class="notice-table">
+                <thead>
+                    <tr>
+                        <th class="col-no">번호</th>
+                        <th>제목</th>
+                        <th class="col-date">작성일</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="col-no">2</td>
+                        <td style="text-align:left;"><a href="view.jsp">[필독] 캠퍼스 내 주차 관리 규정 변경 안내</a></td>
+                        <td class="col-date">2024-05-18</td>
+                    </tr>
+                    <tr>
+                        <td class="col-no">1</td>
+                        <td style="text-align:left;"><a href="view.jsp">이젠대학교 신축 도서관 이용 가이드</a></td>
+                        <td class="col-date">2024-05-15</td>
+                    </tr>
+                    <tr>
+                        <td class="col-no">3</td>
+                        <td style="text-align:left;"><a href="view.jsp">2024년도 1학기 국가장학금 신청 기간 안내</a></td>
+                        <td class="col-date">2024-05-20</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="pagination gap-2">
+            	<a href="#" class="page-num">◀</a>
+                <a href="#" class="page-num choice">1</a>
+                <a href="#" class="page-num">2</a>
+                <a href="#" class="page-num">3</a>
+                <a href="#" class="page-num">4</a>
+                <a href="#" class="page-num">5</a>
+                <a href="#" class="page-num">▶</a>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

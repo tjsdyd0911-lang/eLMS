@@ -1,0 +1,545 @@
+package com.elms.control;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.elms.service.AdminService;
+import com.elms.service.StudentService;
+import com.elms.service.TeacherService;
+import com.elms.util.ConvertUtil;
+import com.elms.vo.ApplyVO;
+import com.elms.vo.NoticeVO;
+import com.elms.vo.SubjectVO;
+import com.elms.vo.SubmissionVO;
+import com.elms.vo.TaskVO;
+import com.elms.vo.UserVO;
+
+
+@Controller
+@RequestMapping("/teacher")
+public class TeacherController {
+
+	TeacherService teacherService;
+	AdminService adminService;
+	
+	@Autowired
+	public TeacherController(TeacherService teacherService, AdminService adminService) {
+		this.teacherService = teacherService;
+		this.adminService = adminService;
+	}
+	
+	private static final String uploadPath = "D:\\WorkSpace\\eLMS05\\upload";
+	
+	//공지사항 목록 화면
+	@RequestMapping(value = "/notice/list.do")
+	public String noticeList(Model model, HttpSession session,
+			@RequestParam(defaultValue = "1") int page, 
+			@RequestParam(defaultValue = "1")String kind,
+			String key) {
+		//유저 로그인 확인 여부를 위한 조회
+		UserVO login = (UserVO)session.getAttribute("login");
+		//로그인 정보 없으면 로그인 페이지로 이동
+		if(login == null) return "redirect:/login.do";
+		
+		if(key == null) key = "";
+		
+		List<NoticeVO> list = adminService.NoticeGetList(kind,key,page);
+
+		// 전체 게시물 갯수
+		int total = adminService.NoticeGetTotal(kind,key);
+
+		// 최대 페이지
+		int maxpage = total / 10;
+		if (total % 10 != 0)
+			maxpage++;
+
+		// 페이징 블럭 계산 (시작블럭, 끝블럭)
+		// 시작블럭 = (현재페이지/10) * 10 + 1
+		int startbk = (page / 10) * 10 + 1;
+		// 끝블럭 = 시작블럭 + 10 - 1
+		int endbk = startbk + 10 - 1;
+		// 끝블럭 > 전체페이지 갯수 크면
+		if (endbk > maxpage) {
+			endbk = maxpage;
+		}
+
+		model.addAttribute("list", list);
+
+		// 페이징 처리용 정보를 jsp 전달
+		model.addAttribute("total", total);
+		model.addAttribute("maxpage", maxpage);
+
+		model.addAttribute("startbk", startbk);
+		model.addAttribute("endbk", endbk);
+
+		model.addAttribute("pageno", page);
+		model.addAttribute("kind", kind);
+		model.addAttribute("key", key);
+
+		return "teacher/notice/list";
+	}
+	
+	//공지사항 보기 화면
+	@RequestMapping(value = "/notice/view.do")
+	public String noticeView() {
+		return "teacher/notice/view";
+	}
+	
+	//과목게시판 페이지
+	@RequestMapping(value = "/subject/list.do")
+	public String subjectList(@RequestParam(defaultValue = "1") int page, Model model, HttpSession session) {
+		UserVO login = (UserVO)session.getAttribute("login");
+		
+		//과목목록
+		List<SubjectVO> list = teacherService.subjectList(login.getUno(), page);
+		
+		//생성한 과목 조회
+		List<SubjectVO> subject = teacherService.MySubject(login.getUno());
+		session.setAttribute("subject", subject);
+
+		// 전체 게시물 갯수
+		int total = teacherService.SubjectGetTotal(login.getUno());
+
+		// 최대 페이지
+		int maxpage = total / 5;
+		if (total % 5 != 0)
+			maxpage++;
+
+		int startbk = (page / 5) * 5 + 1;
+
+		int endbk = startbk + 5 - 1;
+		
+		if (endbk > maxpage) {
+			endbk = maxpage;
+		}
+		
+		//list 각각의 과목객체에 수강신청인원 수 저장
+		if (list != null && !list.isEmpty()) {
+			for(SubjectVO subjects : list) {
+			    int count = teacherService.ApplyCount(subjects.getSno());
+			    subjects.setApplynow(count); // VO에 applynow 객체 추가
+			}
+		}else {
+			return "teacher/subject/list";	
+		}
+		
+		model.addAttribute("list", list);
+		
+		// 페이징 처리용 정보를 jsp 전달
+		model.addAttribute("maxpage", maxpage);
+		model.addAttribute("startbk", startbk);
+		model.addAttribute("endbk", endbk);
+		model.addAttribute("pageno", page);
+		return "teacher/subject/list";
+	}
+	
+	//과제리스트 목록
+	@RequestMapping(value = "/task/list.do")
+	public String taskList(int sno, String sname, Model model, 
+							@RequestParam(defaultValue = "1") int page,
+							HttpSession session) {
+		//유저 로그인 확인 여부를 위한 조회
+		UserVO login = (UserVO)session.getAttribute("login");
+		//로그인 정보 없으면 로그인 페이지로 이동
+		if(login == null) return "redirect:/login.do";
+		
+		model.addAttribute("sno", sno);
+		
+		//과제목록
+		List<TaskVO> list = teacherService.taskList(sno, page);
+		
+		//생성한 과목 조회
+		List<SubjectVO> subject = teacherService.MySubject(login.getUno());
+		session.setAttribute("subject", subject);
+		
+		// 전체 게시물 갯수
+		int total = teacherService.TaskGetTotal(sno);
+
+		// 최대 페이지
+		int maxpage = total / 5;
+		if (total % 5 != 0)
+			maxpage++;
+
+		int startbk = (page / 5) * 5 + 1;
+
+		int endbk = startbk + 5 - 1;
+		
+		if (endbk > maxpage) {
+			endbk = maxpage;
+		}
+		
+		// 페이징 처리용 정보를 jsp 전달
+		model.addAttribute("maxpage", maxpage);
+		model.addAttribute("startbk", startbk);
+		model.addAttribute("endbk", endbk);
+		model.addAttribute("pageno", page);
+		
+		//list 각각의 과제객체에 제출-채점현황수(수강신청인원수) 저장
+		if (list != null && !list.isEmpty()) {
+			for(TaskVO task : list) {
+			    int count = teacherService.ApplyCount(task.getSno());
+			    task.setApplynow(count); // VO에 applynow 객체 추가
+			    int submit = teacherService.SubmitCount(task.getTno());
+			    task.setSubmitcount(submit); // VO에 submitcount 객체 추가
+			    int score = teacherService.ScoreCount(task.getTno());
+			    task.setScorecount(score); // VO에 scorecount 객체 추가
+			}
+		}else {
+			return "teacher/task/list";	
+		}
+		
+		model.addAttribute("title", sname);
+		model.addAttribute("list", list);
+		
+		return "teacher/task/list";
+	}
+	
+	//학생리스트 및 채점모달 목록 화면
+	@RequestMapping(value = "/task/slist.do", method = RequestMethod.POST)
+	public String taskSlist(@RequestParam(defaultValue = "1") int page, TaskVO vo, Model model, HttpSession session) {
+		UserVO login = (UserVO)session.getAttribute("login");
+		
+		model.addAttribute("vo", vo);
+		
+		// 수강신청한 학생리스트 조회
+		List<SubmissionVO> list = teacherService.SList(vo, page);
+
+		model.addAttribute("list", list);
+		
+		// 생성한 과목 조회
+		List<SubjectVO> subject = teacherService.MySubject(login.getUno());
+		session.setAttribute("subject", subject);
+
+		// 전체 게시물 갯수
+		int total = teacherService.SlistGetTotal(vo.getTno());
+
+		// 최대 페이지
+		int maxpage = total / 5;
+		if (total % 5 != 0)
+			maxpage++;
+
+		int startbk = (page / 5) * 5 + 1;
+
+		int endbk = startbk + 5 - 1;
+		
+		if (endbk > maxpage) {
+			endbk = maxpage;
+		}
+		
+		// 페이징 처리용 정보를 jsp 전달
+		model.addAttribute("maxpage", maxpage);
+		model.addAttribute("startbk", startbk);
+		model.addAttribute("endbk", endbk);
+		model.addAttribute("pageno", page);
+		
+		return "teacher/task/slist";
+	}
+	
+	//과제작성 화면
+	@RequestMapping(value = "/task/write.do")
+	public String taskWrite(int sno, Model model) {
+		model.addAttribute("sno", sno);
+		return "teacher/task/write";
+	}
+	
+	//과제작성 처리
+	@RequestMapping(value = "/task/writeok.do")
+	public String taskWriteOk(TaskVO vo, @RequestParam("attach")MultipartFile file) throws IllegalStateException, IOException {
+		//첨부파일 있으면 upload 폴더에 저장한다.
+		if( file != null )
+		{
+			//업로드된 원본 파일 이름 가져오기
+			String originalFileName = file.getOriginalFilename();
+			System.out.println("업로드한 원래 파일 이름:" + originalFileName);
+			
+			//파일 이름이 중복되지 않도록 파일이름을 변경해서 저장
+			//물리 파일이름(savedFileName), 논리파일 이름(originalFileName)
+			UUID uuid = UUID.randomUUID();
+			String savedFileName = uuid.toString();
+			System.out.println("물리적으로 저장한 파일 이름:" + savedFileName);
+			
+			//첨부파일을 upload 폴더에 저장한다.
+			String saveFileName = uploadPath + "\\" + savedFileName;
+			//saveFileName<-- upload\a.jpg
+			
+			//첨부파일을 저장하기 위한 객체 생성
+			File newFile = new File(saveFileName);
+			
+			//실제로 저장한다.
+			file.transferTo(newFile);	
+			
+			vo.setFname(originalFileName); //원본파일명
+			vo.setPname(savedFileName);    //저장된 파일명			
+		}
+		teacherService.TaskWrite(vo);
+		return "redirect:/teacher/task/view.do?tno=" + vo.getTno();
+	}
+
+	//과제보기 화면
+	@RequestMapping(value = "/task/view.do")
+	public String taskView(int tno, Model model) {
+		TaskVO vo = teacherService.taskView(tno);
+		
+		model.addAttribute("view",vo);
+		
+		return "teacher/task/view";
+	}	
+	
+	// 첨부파일 다운로드
+	@RequestMapping(value = "/task/down.do")
+	public void DownLoad(@RequestParam(required = true) int tno, HttpServletResponse response) throws IOException {
+		// 게시물 정보를 얻는다.
+		TaskVO vo = teacherService.taskView(tno);
+
+		String originalFileName = vo.getFname();
+		String savedFileName = vo.getPname();
+
+		// 첨부파일을 브라우저로 전송한다.
+		// originalFileName --> a.jpg
+		// savedFileName --> asdf-dasdf-xxdfdf-dd
+		// 첨부파일을 읽기하기 위한 객체 생성
+		File file = new File(uploadPath, savedFileName);
+
+		// 파일명 인코딩
+		String encodedFileName = new String(originalFileName.getBytes("UTF-8"), "ISO-8859-1");
+
+		// 브라우저에게 다운로드 해야 하는 파일이라고 헤더 전송
+		response.setContentType("application/download");
+		response.setContentLength((int) file.length());
+		response.setHeader("Content-Disposition", "attachment;filename=\"" + encodedFileName + "\"");
+
+		// 실제 파일을 브라우저에 전송
+		OutputStream os = response.getOutputStream();
+
+		FileInputStream fis = new FileInputStream(file);
+		FileCopyUtils.copy(fis, os);
+	}
+
+	//회원정보수정 비밀번호 입력 화면
+	@RequestMapping(value = "/user/update.do")
+	public String userUpdate() {
+		return "teacher/user/update";
+	}
+	
+	//회원정보수정 비밀번호 일치 확인 처리
+	@RequestMapping(value = "/user/pwmatch.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String PwMatch(String id, String pw, HttpSession session) {
+		UserVO login = (UserVO)session.getAttribute("login");
+		
+		if(login == null) return "redirect:/user/login.do";
+		boolean match = teacherService.PwMatch(id, pw);
+		if( match == true) {
+			return "O";
+		}else {
+			return "X";
+		}
+	}
+	
+	//회원정보 수정 화면
+	@RequestMapping(value = "/user/updateok.do")
+	public String Updateok(String uid, Model model) {
+		UserVO vo = new UserVO();
+		vo.setUid(uid);
+		UserVO UserInfo = teacherService.UserInfo(vo);
+		
+		model.addAttribute("num", UserInfo.getNum());
+		model.addAttribute("name", UserInfo.getName());
+		model.addAttribute("id", UserInfo.getUid());
+		model.addAttribute("hp", UserInfo.getHp());
+		return "teacher/user/updateok";
+	}
+	
+	//회원정보 수정 처리
+	@RequestMapping(value = "/user/infoupdate.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String InfoUpdate(String id, String hp, String pw) {
+		teacherService.InfoUpdate(id, hp, pw);
+		return "OK";
+	}
+	
+	//과목이름 중복검사 처리
+	@RequestMapping(value = "/subject/sname_check.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String SnameCheck(String sname) {
+		boolean check = teacherService.SnameCheck(sname);
+		if( check == true) {
+			return "OK";
+		}
+		return "NO";
+	}
+	
+	
+	//과목 등록 처리
+	@RequestMapping(value = "/subject/subjectok.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String SubjectOk(SubjectVO vo) {
+		teacherService.SubjectOk(vo);
+		return "OK";
+	}
+	
+	
+	//과목 삭제 처리
+	@RequestMapping(value = "/subject/subject_del.do/{sno}", method = RequestMethod.DELETE, produces = "text/plain; charset=UTF-8")
+	@ResponseBody
+	public ResponseEntity<String> SubjectDel(@PathVariable String sno) {
+		System.out.println("넘어온 sno: " + sno);
+		try {
+			teacherService.SubjectDel(sno);
+			return new ResponseEntity<String>("삭제되었습니다.", HttpStatus.OK);
+		}catch (DataIntegrityViolationException e) {
+            // 외래키 제약조건 위반 시 409 Conflict 반환
+            return new ResponseEntity<String>("해당 과목을 수강신청한 학생이 있습니다.", HttpStatus.CONFLICT);
+                                
+        } catch (Exception e) {
+            // 그 외 알 수 없는 에러는 500 에러 반환
+            return new ResponseEntity<String>("삭제실패 : 재시도 또는 관리자에게 문의하세요.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+		
+	}
+	
+	
+	//과목 수정 모달 화면
+	@RequestMapping(value = "/subject/subject_update.do", method = RequestMethod.POST, produces = "text/plain; charset=UTF-8")
+	@ResponseBody
+	public String SubjectUpdate(int uno, int sno) {
+		SubjectVO vo = teacherService.SubjectSearch(uno, sno);
+
+		//Json 변환처리
+		return ConvertUtil.toJson(vo);
+	}
+	
+	//과목 수정 처리
+	@RequestMapping(value = "/subject/subject_updateok.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String SubjectUpdateOk(SubjectVO vo) {
+		teacherService.SubjectUpdate(vo);
+		return "OK";
+	}
+	
+	//과제 삭제 처리
+	@RequestMapping(value = "/task/task_del.do/{tno}", method = RequestMethod.DELETE, produces = "text/plain; charset=UTF-8")
+	@ResponseBody
+	public ResponseEntity<String> TaskDel(@PathVariable int tno) {
+		System.out.println("넘어온 sno: " + tno);
+		try {
+			teacherService.TaskDel(tno);
+			return new ResponseEntity<String>("삭제되었습니다.", HttpStatus.OK);
+		}catch (DataIntegrityViolationException e) {
+            // 외래키 제약조건 위반 시 409 Conflict 반환
+            return new ResponseEntity<String>("해당 과제를 제출한 학생이 있습니다.", HttpStatus.CONFLICT);
+                                
+        } catch (Exception e) {
+            // 그 외 알 수 없는 에러는 500 에러 반환
+            return new ResponseEntity<String>("삭제실패 : 재시도 또는 관리자에게 문의하세요.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+	}
+		
+	//과제 수정 화면
+	@RequestMapping(value = "/task/update.do")
+	public String TaskUpdate(int tno, int sno, Model model) {
+		if (tno <= 0) return "redirect:/teacher/task/list.do?sno="+ sno;
+		TaskVO vo = teacherService.taskView(tno);
+		
+		model.addAttribute("view", vo);
+		return "teacher/task/update";
+	}
+	
+	//과제 수정 처리
+	@RequestMapping(value = "/task/updateok.do")
+	public String TaskUpdateok(TaskVO vo, @RequestParam("attach")MultipartFile file) throws IllegalStateException, IOException {
+		//첨부파일 있으면 upload 폴더에 저장한다.
+		if( file != null )
+		{
+			//업로드된 원본 파일 이름 가져오기
+			String originalFileName = file.getOriginalFilename();
+			System.out.println("업로드한 원래 파일 이름:" + originalFileName);
+			
+			//파일 이름이 중복되지 않도록 파일이름을 변경해서 저장
+			//물리 파일이름(savedFileName), 논리파일 이름(originalFileName)
+			UUID uuid = UUID.randomUUID();
+			String savedFileName = uuid.toString();
+			System.out.println("물리적으로 저장한 파일 이름:" + savedFileName);
+			
+			//첨부파일을 upload 폴더에 저장한다.
+			String saveFileName = uploadPath + "\\" + savedFileName;
+			//saveFileName<-- upload\a.jpg
+			
+			//첨부파일을 저장하기 위한 객체 생성
+			File newFile = new File(saveFileName);
+			
+			//실제로 저장한다.
+			file.transferTo(newFile);	
+			
+			vo.setFname(originalFileName); //원본파일명
+			vo.setPname(savedFileName);    //저장된 파일명			
+		}
+		teacherService.TaskUpdate(vo);
+		
+		return "redirect:/teacher/task/view.do?tno=" + vo.getTno();
+	}
+	
+	//과제 채점모달 정보 불러오기
+	@RequestMapping(value = "/task/load_task.do", method = RequestMethod.POST, produces = "text/plain; charset=UTF-8")
+	@ResponseBody
+	public String LoadTask(SubmissionVO vo) {
+		SubmissionVO load = teacherService.LoadTask(vo);
+
+		//Json 변환처리
+		return ConvertUtil.toJson(load);
+	}
+	
+	//과제 채점 저장하기
+	@RequestMapping(value = "/task/score.do", method = RequestMethod.POST, produces = "text/plain; charset=UTF-8")
+	@ResponseBody
+	public String ScoreUpdate(SubmissionVO vo, @RequestParam("attach")MultipartFile file) throws IllegalStateException, IOException {
+		//첨부파일 있으면 upload 폴더에 저장한다.
+		if( file != null )
+		{
+			//업로드된 원본 파일 이름 가져오기
+			String originalFileName = file.getOriginalFilename();
+			System.out.println("업로드한 원래 파일 이름:" + originalFileName);
+			
+			//파일 이름이 중복되지 않도록 파일이름을 변경해서 저장
+			//물리 파일이름(savedFileName), 논리파일 이름(originalFileName)
+			UUID uuid = UUID.randomUUID();
+			String savedFileName = uuid.toString();
+			System.out.println("물리적으로 저장한 파일 이름:" + savedFileName);
+			
+			//첨부파일을 upload 폴더에 저장한다.
+			String saveFileName = uploadPath + "\\" + savedFileName;
+			//saveFileName<-- upload\a.jpg
+			
+			//첨부파일을 저장하기 위한 객체 생성
+			File newFile = new File(saveFileName);
+			
+			//실제로 저장한다.
+			file.transferTo(newFile);	
+			
+			vo.setFfname(originalFileName); //원본파일명
+			vo.setFpname(savedFileName);    //저장된 파일명			
+		}
+		teacherService.ScoreUpdate(vo);
+
+		return "OK";
+	}
+}

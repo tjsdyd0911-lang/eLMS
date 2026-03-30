@@ -1,0 +1,32 @@
+// 클래스 : 게시물정보 C/R/U/D 처리 클래스
+package com.elms.service;
+
+import org.apache.ibatis.session.SqlSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.elms.vo.NoticeVO;
+
+@Service
+public class AdminService 
+{
+	@Autowired
+	private SqlSession session;
+	
+	private static final String namespace = "elms.notice";
+	
+	//게시물을 등록한다.
+	//return true : 등록 성공, false : 등록 실패
+	public boolean Insert(NoticeVO vo)
+	{
+		session.insert(namespace + ".write", vo);
+		return true;
+	}
+	
+	public NoticeVO Read(String Nno)
+	{
+		NoticeVO vo = session.selectOne(namespace + ".view", Nno);
+		
+		return vo;
+	}
+}

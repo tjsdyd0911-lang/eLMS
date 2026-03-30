@@ -1,0 +1,112 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ include file="../../include/teacher/head.jsp" %>
+    <div class="main-container">
+      <aside>
+        <div class="side-menu-top">
+         	<a href="../notice/list.do" class="menu-item">공지사항</a>
+            <a href="../subject/list.do" class="menu-item">과목 관리</a>
+            <a href="../task/list.do" class="menu-item active">과제 게시판</a>
+        </div>
+<%@ include file="../../include/teacher/side.jsp" %>           
+      </aside>
+
+		<main>
+			<!-- 1. 페이지 제목 -->
+			<div
+				class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-2 border-dark">
+				<h2 class="m-0 fw-bold text-dark">과제 게시판</h2>
+				<button class="btn-batch-approve" onclick="location.href='write.do'">
+					<i class="fa-solid fa-plus me-1"></i> 과제 등록
+				</button>
+			</div>
+			<div class="divider"></div>
+
+			<!-- 2. 서브 헤더 (과목명 + 등록 버튼) -->
+			<div class="d-flex justify-content-between align-items-center">
+				<h4 class="sub-title">개인 웹사이트 테마 선정 및 기획안</h4>
+
+			</div>
+			<br>
+
+			<!-- 3. 테이블 영역 -->
+			<div class="table-responsive">
+				<table class="table custom-table">
+					<colgroup>
+						<col style="width: 10%;">
+						<!-- 구분 -->
+						<col style="width: 35%;">
+						<!-- 과제명 -->
+						<col style="width: 15%;">
+						<!-- 제출 현황 -->
+						<col style="width: 15%;">
+						<!-- 마감일 -->
+						<col style="width: 10%;">
+						<!-- 채점 -->
+						<col style="width: 15%;">
+						<!-- 학생 및 채점현황 -->
+					</colgroup>
+					<thead>
+						<tr>
+							<th>구분</th>
+							<th>과제명</th>
+							<th>제출 현황</th>
+							<th>마감일</th>
+							<th>채점 현황</th>
+							<th>학생 관리</th>
+						</tr>
+					</thead>
+					<tbody>
+						<!-- Row 1 -->
+						<tr>
+							<td><span class="badge-pill bg-gray">수시과제</span></td>
+							<td><a href="view.do" class="task-link">개인 웹사이트 테마 선정 및
+									기획안</a></td>
+							<td>45 / 45</td>
+							<td>2024-03-20</td>
+							<td>25 / 45</td>
+							<td><button class="btn-batch-approve"
+									onclick="location.href='slist.do'">보기</button></td>
+						</tr>
+						<!-- Row 2 -->
+						<tr>
+							<td><span class="badge-pill bg-green-dark">중간과제</span></td>
+							<td><a href="view.do" class="task-link">HTML5 시맨틱 태그 활용
+									연습</a></td>
+							<td>42 / 45</td>
+							<td>2024-04-05</td>
+							<td>0 / 45</td>
+							<td><button class="btn-batch-approve"
+									onclick="location.href='slist.do'">보기</button></td>
+						</tr>
+						<!-- Row 3 -->
+						<tr>
+							<td><span class="badge-pill bg-orange">기말과제</span></td>
+							<td><a href="view.do" class="task-link">최종 반응형 웹 포트폴리오
+									프로젝트</a></td>
+							<td>30 / 45</td>
+							<td>2024-05-30</td>
+							<td>15 / 45</td>
+							<td><button class="btn-batch-approve"
+									onclick="location.href='slist.do'">보기</button></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<!-- 4. 페이지네이션 -->
+			<div class="pagination gap-2">
+				<a href="list.do" class="page-num">◀</a> 
+				<a href="list.do" class="page-num choice">1</a> 
+				<a href="list.do#" class="page-num">2</a> 
+				<a href="list.do" class="page-num">3</a> 
+				<a href="list.do" class="page-num">4</a>
+				<a href="list.do" class="page-num">5</a> 
+				<a href="list.do" class="page-num">▶</a>
+			</div>
+
+		</main>
+	</div>
+
+</body>
+</html>

@@ -1,0 +1,67 @@
+package com.elms.control;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.elms.service.UserService;
+import com.elms.vo.UserVO;
+
+@Controller
+public class UserController {
+	
+	@Autowired
+	private UserService userService;
+
+	@RequestMapping(value = "/login.do")
+	public String Login() {
+		return "user/login";
+	}
+	
+	@RequestMapping(value = "/loginok.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String LoginOk(String uid, String pw, HttpServletRequest request) {
+		HttpSession session = request.getSession();
+		
+		session.setAttribute("login", null);
+		if ( uid == null || pw == null )
+		{
+			return "error";
+		}
+		
+		UserVO vo = userService.Login(uid,pw);
+		if( vo == null )
+		{
+			return "error";
+		}else
+		{
+			session.setAttribute("login", vo);
+			return "OK";
+		}
+		
+	}
+	
+	@RequestMapping(value = "/join.do")
+	public String Join() {
+		return "user/login";
+	}
+	
+	@RequestMapping(value = "/joinok.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String JoinOk(UserVO vo) {
+	 
+		
+		userService.Join(vo);
+	 
+		return "OK";
+		
+	}
+	
+	
+	
+}

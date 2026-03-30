@@ -1,0 +1,243 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="../../include/admin/head.jsp"%>
+
+<script>
+window.onload = function() 
+{
+    // 1. 변경사항 저장 버튼 클릭 이벤트
+    // (HTML 버튼에 class="btnUpdateStatus"를 추가해야 합니다)
+    $(".btnUpdateStatus").click(function() {
+    	TeacherStatus();
+    });
+
+    // 2. 전체 선택 체크박스 클릭 이벤트
+    $("#checkAll").click(function() {
+        if ($("#checkAll").is(":checked")) {
+            $("input[name='teacherCheck']").prop("checked", true);
+        } else {
+            $("input[name='teacherCheck']").prop("checked", false);
+        }
+    });
+    
+    // 3. 선택 일괄 승인
+    $("#btnAccept").click(function(){
+    	TeacherAccept();
+    });
+}
+
+function TeacherStatus() {
+    // 1. 선택된 상태 값 가져오기
+    var statusVal = $("#Tstatus").val();
+    
+    // 2. 유효성 검사
+    if( statusVal == "" ){
+        alert("변경할 상태를 선택해 주세요.");
+        $("#Tstatus").focus();
+        return;
+    }
+ 
+    // 체크된 교사 가져오기
+    var checkedBoxes = $("input[name='teacherCheck']:checked"); 
+    
+    if(checkedBoxes.length == 0) {
+        alert("상태를 변경할 교사를 선택해 주세요.");
+        return;
+    }
+   
+ // 선택된 모든 교사의 번호(uno)를 저장할 빈 문자열 생성
+    var targetUno = "";
+    
+    // 체크된 박스의 개수만큼 반복문 실행
+    for(i = 0 ; i < checkedBoxes.length ; i++)
+    {
+        // 문자열이 비어있지 않다면(즉, 이미 번호가 하나 이상 들어있다면)
+        if(targetUno != "")
+        {
+            targetUno += ","; // 번호 사이에 구분자인 쉼표(,)를 추가
+        }
+        
+        // 현재 체크된 박스의 값(uno)을 문자열 뒤에 이어 붙임
+        targetUno += checkedBoxes[i].value;
+    }
+    // 결과 예시: "1,3,5" (여러 명의 번호가 하나의 문장으로 완성됨)
+ 
+    if(!confirm("선택한 교사의 상태를 변경하시겠습니까?")) {
+        return;
+    }
+    
+    // AJAX 전송
+    $.ajax({
+        url: "updateStatus.do", // Controller의 @RequestMapping 값과 일치
+        type: "post",
+        data : {
+            status : statusVal, // UserVO의 필드명(status)과 일치
+            uno    : targetUno  // UserVO의 필드명(uno)과 일치
+        },
+        success : function(data) {
+            if( data.trim() == "OK" ) { 
+                alert("상태가 성공적으로 변경되었습니다.");
+                location.reload(); 
+            } else {
+                alert("상태 변경에 실패했습니다.");
+            }
+        },
+        error : function() {
+            alert("서버 통신 중 오류가 발생했습니다.");
+        }
+    });
+}
+
+function TeacherAccept()
+{
+    // 체크된 교사 가져오기
+    var checkedBoxes = $("input[name='teacherCheck']:checked"); 
+    
+    if(checkedBoxes.length == 0) {
+        alert("일괄 승인 처리할 교사를 선택해 주세요.");
+        return;
+    }
+   
+    // 첫 번째로 체크된 교사의 uno를 가져옴 
+    var targetUno = "";
+    for(i = 0 ; i < checkedBoxes.length ; i++)
+    {
+    	if(targetUno != "")
+    	{
+    		targetUno += ",";	
+    	}
+    	targetUno += checkedBoxes[i].value;
+    }
+ 
+    if(!confirm("선택한 교사를 일괄승인하시겠습니까?")) {
+        return;
+    }	
+    
+    // AJAX 전송
+    $.ajax({
+        url: "updateAccept.do", // Controller의 @RequestMapping 값과 일치
+        type: "post",
+        data : {
+            uno    : targetUno  // UserVO의 필드명(uid)과 일치
+        },
+        success : function(data) {
+            if( data.trim() == "OK" ) { 
+                alert("상태가 성공적으로 변경되었습니다.");
+                location.reload(); 
+            } else {
+                alert("상태 변경에 실패했습니다.");
+            }
+        },
+        error : function() {
+            alert("서버 통신 중 오류가 발생했습니다.");
+        }
+    });    
+}
+</script>
+
+<div class="main-container">
+	<aside>
+		<div class="side-menu-top">
+			<a href="../notice/list.do" class="menu-item">공지사항</a> 
+			<a href="../teacher/list.do" class="menu-item active">교수 관리</a> 
+			<a href="../student/list.do" class="menu-item">학생 관리</a>
+		</div>
+	</aside>
+
+	<main class="content-area">
+		<!-- 변경사항 저장 버튼 -->
+		<div class="d-flex justify-content-between align-items-center">
+			<h2 class="page-title">교수 관리</h2>
+			<div class="d-flex gap-2">
+				<select id="Tstatus" name="Tstatus" class="form-select form-select-sm">
+					<option value="">상태변경</option>
+					<option value="01">재직</option>
+					<option value="02">휴직</option>
+					<option value="03">퇴직</option>
+				</select>
+				<button class="btn-top-green btnUpdateStatus">변경사항 저장</button>
+			</div>
+		</div>
+
+		<hr style="border-top: 1px solid #dee2e6; margin-bottom: 0;">
+
+		<table class="custom-table">
+			<thead>
+				<tr>
+					<th><input type="checkbox" class="form-check-input" id="checkAll"></th>
+					<th>번호</th>
+					<th>사번</th>
+					<th>이름</th>
+					<th>가입일</th>
+					<th>승인여부</th>
+					<th>현재상태</th>
+				</tr>
+			</thead>
+			<tbody>
+				<%-- 목록(list)에서 데이터를 하나씩 꺼내 'user'라고 부르며 반복합니다. vs는 반복 상태 정보입니다. --%>
+				<c:forEach var="user" items="${list}" varStatus="vs">
+					<tr>
+						<%-- 체크박스: 선택한 항목의 고유 번호(uno)를 서버로 보낼 때 사용합니다. --%>
+						<td><input type="checkbox" id="teacherCheck" name="teacherCheck" class="form-check-input" value="${user.uno}"></td>
+
+						<%-- 번호: 전체 개수에서 현재 순서를 빼서, 최신글이 높은 번호를 가지도록 계산합니다. --%>
+						<td>${total - ((pageno - 1) * 10) - vs.index}</td>
+						<td>${user.num}</td>
+						<td>${user.name}</td>
+						<td>${user.jdate}</td>
+
+						<%-- 승인 상태: 'Y'이면 승인완료, 아니면 승인대기로 표시합니다. --%>
+						<td>
+							<c:choose>
+								<c:when test="${user.appr == 'Y'}">승인완료</c:when>
+								<c:otherwise>승인대기</c:otherwise>
+							</c:choose>
+						</td>
+
+						<%-- 재직 상태: 코드값(01, 02, 03)에 따라 서로 다른 디자인의 배지를 보여줍니다. --%>
+						<td>
+							<c:choose>
+								<c:when test="${user.status == '01'}">
+									<span class="status-badge badge-active">재직</span>
+								</c:when>
+								<c:when test="${user.status == '02'}">
+									<span class="status-badge badge-on-leave">휴직</span>
+								</c:when>
+								<c:when test="${user.status == '03'}">
+									<span class="status-badge badge-retired">퇴직</span>
+								</c:when>
+							</c:choose>
+						</td>
+					</tr>
+				</c:forEach>
+			</tbody>
+			<%-- 데이터가 없을 경우 처리 --%>
+			<c:if test="${empty list}">
+				<tr>
+					<td colspan="7" style="text-align: center;">조회된 교수가 없습니다.</td>
+				</tr>
+			</c:if>
+			</tbody>
+		</table>
+
+		<!-- 하단 페이지네이션 -->
+		 <div class="pagination gap-2" style="justify-content: center; display: flex; margin-top: 20px;">
+            <c:if test="${ startbk > 1 }">
+                <a href="list.do?kind=${kind}&key=${key}&page=${startbk - 1}&status=${status}" class="page-num">◀</a>
+            </c:if> 
+            <c:forEach var="page" begin="${startbk}" end="${endbk}">
+                <a href="list.do?kind=${kind}&key=${key}&page=${page}&status=${status}" 
+                   class="page-num ${page == pageno ? 'active' : ''}">${page}</a>
+            </c:forEach> 
+            <c:if test="${ endbk < maxpage }">
+                <a href="list.do?kind=${kind}&key=${key}&page=${endbk + 1}&status=${status}" class="page-num">▶</a>
+            </c:if>
+         </div>
+         <div style="float:right;">
+				<button id="btnAccept" class="btn-batch-approve">선택 일괄 승인</button>
+		 </div>
+	</main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

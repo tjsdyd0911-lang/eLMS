@@ -1,0 +1,617 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ include file="../../include/teacher/head.jsp" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<!-- [Bootstrap 5 JS Bundle] -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+	window.onload = function(){
+		$("#btnSubmit").click(function(){
+			DoSubmit();
+		});
+		
+		$("#newSname").keyup(function(){
+			DoCheck();
+		});
+		
+		$("#UpdateSname").keyup(function(){
+			DoUpCheck();
+		});
+	}
+	
+	function DoCheck(){
+		$.ajax({
+			url: "sname_check.do",
+			type: "post",
+			dataType: "html",
+			data :
+			{
+				sname : $("#newSname").val()
+			},
+			success : function(data)
+			{
+				data = data.trim();
+				if( data == "OK" )
+				{
+					$("#snameMemo").html("");
+				}else
+				{
+					$("#snameMemo").html("중복된 과목명이 있습니다.");
+				}
+			},
+			error : function(xhr,status,error)
+			{
+				alert("실패");
+			}
+		});
+	}
+	
+	function DoSubmit(){
+		if( $("#newSname").val().trim() == "" ){
+			alert("과목명을 입력해주세요.");
+			$("#newSname").focus();
+			return;
+		}
+
+		//***강의시작-종료일 코드
+		const sstart = $("#newSstart").val();
+
+		if (sstart == "") {
+		    alert("강의시작일을 지정해주세요.");
+		    return;
+		}
+
+		// 날짜 객체로 변환
+		const sstartDate = new Date(sstart); // 입력한 날짜
+		const today = new Date();              // 현재 날짜와 시간
+
+		// 시간을 00:00:00으로 초기화 (날짜만 비교하기 위함)
+		// 이걸 안 하면 '오늘'을 선택해도 '지금' 시간보다 이전으로 인식될 수 있습니다.
+		today.setHours(0, 0, 0, 0);
+		sstartDate.setHours(0, 0, 0, 0);
+
+		if (sstartDate < today) {
+		    alert("강의 시작일이 오늘보다 이전입니다.");
+		    return;
+		}
+		
+		const send = $("#newSend").val();
+
+		if( send == "" ){
+			alert("강의종료일을 지정해주세요.");
+			return;
+		}
+
+		// 날짜 객체로 변환
+		const sendDate = new Date(send); // 종료일 선택
+
+		sendDate.setHours(0, 0, 0, 0);
+
+		if ( sendDate < sstartDate ) {
+		    alert("강의 종료일이 강의 시작일보다 이전입니다.");
+		    return;
+		}
+		
+		//***수강신청시작-종료일 코드
+		const astart = $("#newAstart").val();
+
+		if( $("#newAstart").val() == "" ){
+			alert("수강신청 시작일을 지정해주세요.");
+			return;
+		}
+
+		const astartDate = new Date(astart); // 입력한 날짜
+
+		astartDate.setHours(0, 0, 0, 0);
+
+		if (astartDate < today) {
+		    alert("강의 시작일이 오늘보다 이전입니다.");
+		    return;
+		}
+		
+		const aend = $("#newAend").val();
+
+		if( aend == "" ){
+			alert("수강신청 종료일을 지정해주세요.");
+			return;
+		}
+
+		const aendDate = new Date(aend);
+
+		aendDate.setHours(0, 0, 0, 0);
+
+		if ( aendDate < astartDate ) {
+		    alert("수강신청 종료일이 수강신청 시작일보다 이전입니다.");
+		    return;
+		}
+		
+		if( $("#newCnt").val() == "" ){
+			alert("수강가능 인원을 입력해주세요.");
+			return;
+		}
+		
+		if( $("#snameMemo").html() != "" ){
+			if( confirm("강의명이 중복됩니다. 저장하시겠습니까?") == true ){
+				$.ajax({
+					url: "subjectok.do",
+					type: "post",
+					dataType: "html",
+					data : $("#frmSubject").serialize(),
+					success : function(data)
+					{
+						document.location = "../../teacher/subject/list.do";
+					},
+					error : function(xhr,status,error)
+					{
+						alert("실패");
+					}
+				});
+			}
+		}else{
+			$.ajax({
+				url: "subjectok.do",
+				type: "post",
+				dataType: "html",
+				data : $("#frmSubject").serialize(),
+				success : function(data)
+				{
+					alert("과목이 등록되었습니다.");
+					document.location = "../../teacher/subject/list.do";
+				},
+				error : function(xhr,status,error)
+				{
+					alert("실패");
+				}
+			});
+		}
+	}
+	
+	function DoDelete(sno, sname) {
+		if(confirm("'" + sno + "'번 '" + sname +"'을 삭제하시겠습니까?") == true){
+			$.ajax({
+				url: "subject_del.do/" + sno,
+				type: "DELETE",
+				dataType: "html",
+				success : function(data)
+				{
+						alert(data); //"삭제되었습니다." 문구가 팝업으로 뜸
+						document.location = "../../teacher/subject/list.do";
+				},
+				error : function(xhr, status, error) {
+			        if (xhr.status === 409) {
+			            alert(xhr.responseText); // "해당 과목을 수강신청한 학생이 있습니다." 문구가 팝업으로 뜸
+			        } else {
+			        	alert("삭제실패 : 재시도 또는 관리자에게 문의하세요.");
+			            console.log("Error Code: " + xhr.status);
+			        }
+			    }
+			});
+		}
+		
+	}
+	
+	function DoUpdate(sno, uno, applynow) {
+		$.ajax({
+		    url: "subject_update.do",
+		    type: "post",
+		    dataType: "json",
+		    data: {
+		        uno: uno,
+		        sno: sno
+		    },
+		    success: function(subject) {
+		        console.log("서버 응답 데이터:", subject);
+
+		        if (!subject) {
+		            alert("데이터를 찾을 수 없습니다.");
+		            return;
+		        }
+
+		        //데이터 삽입
+		        $("#sno").val(subject.sno);
+		        $("#UpdateSname").val(subject.sname);
+		        $("#UpdateSstart").val(subject.sstart);
+		        $("#UpdateSend").val(subject.send);
+		        $("#UpdateAstart").val(subject.astart);
+		        $("#UpdateAend").val(subject.aend);
+		        $("#UpdateCnt").val(subject.cnt);
+		        $("#NowCnt").text(applynow);
+		        
+		        // 2. 모달 띄우기 (Bootstrap 5 방식)
+		        var modalElement = document.getElementById("editModal");
+		        if (modalElement) {
+		            var modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+		            modalInstance.show();
+		        } else {
+		            console.error("editModal 요소를 찾을 수 없습니다.");
+		        }
+		    },
+		    error: function(xhr, status, error) {
+		        console.error("에러 발생:", error);
+		        console.log("서버 응답 내용:", xhr.responseText); // 406 에러 시 서버가 보낸 메시지 확인용
+		        alert("서버 통신 실패 (에러 코드: " + xhr.status + ")");
+		    }
+		});
+	}	
+	
+	function DoUpCheck(){
+		$.ajax({
+			url: "sname_check.do",
+			type: "post",
+			dataType: "html",
+			data :
+			{
+				sname : $("#UpdateSname").val()
+			},
+			success : function(data)
+			{
+				data = data.trim();
+				if( data == "OK" )
+				{
+					$("#snameUpMemo").html("");
+				}else
+				{
+					$("#snameUpMemo").html("중복된 과목명이 있습니다.");
+				}
+			},
+			error : function(xhr,status,error)
+			{
+				alert("실패");
+			}
+		});
+	}
+
+	function DoUpdateOk(){
+		if( $("#UpdateSname").val().trim() == "" ){
+			alert("과목명을 입력해주세요.");
+			$("#UpdateSname").focus();
+			return;
+		}
+
+		//***강의시작-종료일 코드
+		const sstart = $("#UpdateSstart").val();
+
+		if (sstart == "") {
+		    alert("강의시작일을 지정해주세요.");
+		    return;
+		}
+
+		// 날짜 객체로 변환
+		const sstartDate = new Date(sstart); // 입력한 날짜
+		const today = new Date();              // 현재 날짜와 시간
+
+		// 시간을 00:00:00으로 초기화 (날짜만 비교하기 위함)
+		// 이걸 안 하면 '오늘'을 선택해도 '지금' 시간보다 이전으로 인식될 수 있습니다.
+		today.setHours(0, 0, 0, 0);
+		sstartDate.setHours(0, 0, 0, 0);
+
+		if (sstartDate < today) {
+		    alert("강의 시작일이 오늘보다 이전입니다.");
+		    return;
+		}
+		
+		const send = $("#UpdateSend").val();
+
+		if( send == "" ){
+			alert("강의종료일을 지정해주세요.");
+			return;
+		}
+
+		// 날짜 객체로 변환
+		const sendDate = new Date(send); // 종료일 선택
+
+		sendDate.setHours(0, 0, 0, 0);
+
+		if ( sendDate < sstartDate ) {
+		    alert("강의 종료일이 강의 시작일보다 이전입니다.");
+		    return;
+		}
+		
+		//***수강신청시작-종료일 코드
+		const astart = $("#UpdateAstart").val();
+
+		if( astart == "" ){
+			alert("수강신청 시작일을 지정해주세요.");
+			return;
+		}
+
+		const astartDate = new Date(astart); // 입력한 날짜
+
+		astartDate.setHours(0, 0, 0, 0);
+
+		if (astartDate < today) {
+		    alert("수강신청 시작일이 오늘보다 이전입니다.");
+		    return;
+		}
+		
+		const aend = $("#UpdateAend").val();
+
+		if( aend == "" ){
+			alert("수강신청 종료일을 지정해주세요.");
+			return;
+		}
+
+		const aendDate = new Date(aend);
+
+		aendDate.setHours(0, 0, 0, 0);
+
+		if ( aendDate < astartDate ) {
+		    alert("수강신청 종료일이 수강신청 시작일보다 이전입니다.");
+		    return;
+		}
+		
+		if( $("#UpdateCnt").val() == "" ){
+			alert("수강가능 인원을 입력해주세요.");
+			return;
+		}
+		
+		if( $("#UpdateCnt").val() < $("#NowCnt").text() ){
+			alert("지정한 값이 이미 수강신청한 학생 수보다 적습니다.");
+			$("#UpdateCnt").focus();
+			return;
+		}
+		
+		const isDuplicate = $("#snameUpMemo").html().trim() !== "";
+	    const Msg = isDuplicate ? "강의명이 중복됩니다. 저장하시겠습니까?" : "수정하시겠습니까?";
+
+	    if (confirm(Msg)) {
+	        let formData = $("#frmUpdate").serialize();
+
+	        $.ajax({
+	            url: "subject_updateok.do",
+	            type: "post",
+	            dataType: "html",
+	            data: formData,
+	            success: function(data) {
+	                alert("수정되었습니다.");
+	                document.location = "../../teacher/subject/list.do";
+	            },
+	            error: function(xhr, status, error) {
+	            	console.error("에러 발생:", error);
+			        console.log("서버 응답 내용:", xhr.responseText);
+	                alert("저장에 실패했습니다. 관리자에게 문의하세요.");
+	            }
+	        });
+		}
+	}
+	
+	function DoTask(sno, sname){
+		document.location = "../task/list.do?sno=" + sno + "&sname=" + sname;
+	}
+</script>
+    <div class="main-container">
+      <aside>
+        <div class="side-menu-top">
+         	<a href="../notice/list.do" class="menu-item">공지사항</a>
+            <a href="../subject/list.do" class="menu-item active">과목 관리</a>
+            <a href="#" onclick="javascript:alert('과제관리 버튼을 눌러주세요.'); return(false);" class="menu-item">과제 게시판</a>
+        </div>
+	<%@ include file="../../include/teacher/side.jsp" %>           
+        </aside>
+		<main>
+			<!-- 페이지 타이틀 & 등록 버튼 -->
+			<div
+				class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-2 border-dark">
+				<h2 class="m-0 fw-bold text-dark">담당 과목 관리</h2>
+				<!-- 모달 트리거 버튼 -->
+				<button class="btn btn-primary" data-bs-toggle="modal"
+					data-bs-target="#registerModal">
+					<i class="fa-solid fa-plus me-1"></i> 과목 등록
+				</button>
+			</div>
+
+			<!-- 테이블 (Bootstrap) -->
+			<div class="table-responsive">
+				<table class="table table-hover text-center">
+					<colgroup>
+						<col style="width: 5%;">
+						<col style="width: 18%;">
+						<col style="width: 15%;">
+						<col style="width: 17%;">
+						<col style="width: 15%;">
+						<col style="width: 10%;">
+						<col style="width: 10%;">
+						<col style="width: 10%;">
+					</colgroup>
+					<thead>
+						<tr>
+							<th>번호</th>
+							<th>과목명</th>
+							<th>수강신청 기간</th>
+							<th>강의 기간</th>
+							<th>강의 상태</th>
+							<th>신청 현황</th>
+							<th>과제 관리</th>
+							<th>관리</th>
+						</tr>
+					</thead>
+					<tbody>
+						<jsp:useBean id="now" class="java.util.Date"/>
+						<fmt:formatDate value="${ now }" pattern="yyyyMMdd" var="today"/>
+						<c:forEach var="list" items="${ list }">
+							<tr>
+								<td>${ list.sno }</td>
+								<td class="text-start ps-4">${ list.sname }</td>
+								<td>${ list.astart } &#732; ${ list.aend }</td>
+								<td>${ list.sstart } &#732; ${ list.send }</td>
+								<c:if test="${ fn:replace(list.sstart, '-', '') > today }">
+									<td><span class="badge-pill rounded-pill text-bg-secondary">개설준비중</span></td>
+								</c:if>
+								<c:if test="${ fn:replace(list.sstart, '-', '') <= today && today <= fn:replace(list.send, '-', '') }">
+									<td><span class="badge-pill rounded-pill text-bg-success">강의중</span></td>
+								</c:if>
+								<c:if test="${ fn:replace(list.send, '-', '') < today }">
+									<td><span class="badge-pill rounded-pill" style="background-color: #d63384;">강의 완료</span></td>
+								</c:if>
+								<td>${ list.applynow } &#47; ${ list.cnt }</td>
+								<td><button class="btn btn-sm btn-warning text-white" onclick="DoTask('${list.sno}', '${list.sname}');">과제 관리</button></td>
+								<td>
+									<button class="btn btn-sm btn-primary" data-bs-toggle="modal" onclick="DoUpdate('${list.sno}', '${login.uno}', ${ list.applynow });">수정</button>
+									<button class="btn btn-sm btn-danger" onclick="DoDelete('${list.sno}', '${list.sname}')">삭제</button>
+								</td>
+							</tr>
+						</c:forEach>
+					</tbody>
+				</table>
+			</div>
+
+			<!-- 페이지네이션 (Bootstrap) -->
+		<div class="pagination gap-2" style="text-align: center;">
+			<c:if test="${ startbk != 1 }">
+				<a href="list.do?kind=page=${ startbk - 2 }" class="page-num">◀</a>
+			</c:if> 
+			<c:forEach var="page" begin="${startbk}" end="${endbk}">
+				<c:if test="${ page == pageno }">
+					<a href="list.do?page=${ page }" class="page-num active">${ page }</a>
+				</c:if>
+				<c:if test="${ page != pageno }">
+					<a href="list.do?page=${ page }" class="page-num">${ page }</a>
+				</c:if>				
+			</c:forEach> 
+			<c:if test="${ endbk < maxpage }">
+				<a href="list.do?page=${ endbk + 1 }" class="page-num">▶</a>
+			</c:if>
+		</div>
+		</main>
+	</div>
+
+	<!-- ========================================== -->
+	<!-- [MODAL 1] 새 과목 등록 모달 -->
+	<!-- ========================================== -->
+	<div class="modal fade" id="registerModal" tabindex="-1"
+		aria-labelledby="registerModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-lg modal-dialog-centered">
+			<div class="modal-content p-3">
+				<div class="modal-header border-0 pb-0">
+					<h4 class="modal-title" id="registerModalLabel">새 과목 등록</h4>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<form id="frmSubject" name="frmSubject" method="post">
+						<input type="hidden" id="uno" name="uno" value="${ login.uno }">
+						<div class="mb-4">
+							<label for="newSname" class="form-label">과목명</label> 
+							<input type="text" id="newSname" name="sname" class="form-control" placeholder="예: 파이썬 중급 프로그래밍">
+							<span id="snameMemo"></span>
+						</div>
+						<div class="mb-4">
+							<label class="form-label">강의 기간</label>
+							<div class="row g-2">
+								<div class="col">
+									<input type="date" id="newSstart" name="sstart" class="form-control">
+								</div>
+								<div class="col-auto date-separator">~</div>
+								<div class="col">
+									<input type="date" id="newSend" name="send" class="form-control">
+								</div>
+							</div>
+						</div>
+						<div class="mb-4">
+							<label class="form-label">수강신청 기간</label>
+							<div class="row g-2">
+								<div class="col">
+									<input type="date" id="newAstart" name="astart" class="form-control">
+								</div>
+								<div class="col-auto date-separator">~</div>
+								<div class="col">
+									<input type="date" id="newAend" name="aend" class="form-control">
+								</div>
+							</div>
+						</div>
+						<div class="mb-4 row align-items-center">
+							<label class="col-sm-3 col-form-label fw-bold">수강가능인원</label>
+							<div class="col-sm-9">
+								<div class="input-group" style="max-width: 200px;">
+									<input type="number" id="newCnt" name="cnt" class="form-control text-end" min="0">
+									<span class="input-group-text">명</span>
+								</div>
+							</div>
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer border-0 pt-0">
+					<button type="button" id="btnSubmit" name="btnSubmit" class="btn btn-primary px-4">등록하기</button>
+					<button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">취소</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- ========================================== -->
+	<!-- [MODAL 2] 과목 수정 모달 -->
+	<!-- ========================================== -->
+	<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-lg modal-dialog-centered">
+			<div class="modal-content p-3">
+				<div class="modal-header border-0 pb-0">
+					<h4 class="modal-title" id="editModalLabel">과목 수정</h4>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"
+						aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<form id="frmUpdate" name="frmUpdate">
+						<input type="hidden" id="uno" name="uno" value="${ login.uno }">
+						<input type="hidden" id="sno" name="sno">
+						<div class="mb-4">
+							<label for="UpdateSname" class="form-label">과목명</label> 
+							<input type="text" class="form-control" id="UpdateSname" name="sname" value="파이썬 중급 프로그래밍">
+							<span id="snameUpMemo"></span>
+						</div>
+						<div class="mb-4">
+							<label class="form-label">강의 기간</label>
+							<div class="row g-2">
+								<div class="col">
+									<input type="date" class="form-control" id="UpdateSstart" name="sstart" value="2024-03-02">
+								</div>
+								<div class="col-auto date-separator">~</div>
+								<div class="col">
+									<input type="date" class="form-control" id="UpdateSend" name="send" value="2024-05-31">
+								</div>
+							</div>
+						</div>
+						<div class="mb-4">
+							<label class="form-label">수강신청 기간</label>
+							<div class="row g-2">
+								<div class="col">
+									<input type="date" class="form-control" id="UpdateAstart" name="astart">
+								</div>
+								<div class="col-auto date-separator">~</div>
+								<div class="col">
+									<input type="date" class="form-control" id="UpdateAend" name="aend">
+								</div>
+							</div>
+						</div>
+						<div class="mb-4 row align-items-center">
+						  <!-- 1. 수강가능인원 라벨 (3칸) -->
+						  <label class="col-sm-2 col-form-label fw-bold">수강가능인원</label>
+						  
+						  <!-- 2. 수강가능인원 입력칸 (4칸) -->
+						  <div class="col-sm-4">
+						    <div class="input-group">
+						      <input type="number" class="form-control text-end" id="UpdateCnt" name="cnt">
+						      <span class="input-group-text">명</span>
+						    </div>
+						  </div>
+						
+						  <!-- 3. 현재신청인원 라벨 (3칸) -->
+						  <label class="col-sm-2 col-form-label fw-bold text-sm-end">현재신청인원</label>
+						  
+						  <!-- 4. 현재신청인원 표시칸 (3칸) -->
+						  <div class="col-sm-4">
+						    <div class="input-group">
+						      <span class="input-group-text text-end" id="NowCnt"></span>
+						    </div>
+						  </div>
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer border-0 pt-0">
+					<button type="button" class="btn btn-primary px-4" onclick="DoUpdateOk();">수정하기</button>
+					<button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">취소</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

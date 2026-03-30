@@ -1,0 +1,250 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ include file="../../include/student/head.jsp"%>
+<script type="text/javascript">
+	/* 서버에서 보낸 msg가 있다면 alert 실행 */
+	var message = "${msg}";
+	if (message && message !== "null" && message !== "") {
+	    alert(message);
+	}
+</script>
+<script>
+	$(function(){
+		//신청 버튼 클릭
+		$(".btnApply").click(function(){
+			DoApply(this);
+		});
+		
+		//신청 취소 버튼 클릭
+		$(".ubtn-cancel").click(function(){
+			DoCancel(this);
+		});
+	});
+	
+	function DoApply(obj){
+		
+		var sno = $(obj).data("sno");
+		var uno = "${ login.uno }";
+		
+		if(confirm("수강 신청 하시겠습니까?")){		
+			$.ajax({
+				url: "apply.do",
+				type: "post",
+				dataType: "html",
+				data :
+				{
+					uno : uno,
+					sno : sno
+				},
+				success : function(data)
+				{
+					if( data == "OK" )
+					{
+						alert("수강 신청이 완료되었습니다.");
+						location.reload();
+					}else
+					{
+						if(data == "END") alert("수강 신청 기간이 지났습니다.");
+						if(data == "OVER") alert("수강 신청 정원이 초과되었습니다.");
+						else alert("수강 신청에 실패했습니다.");
+					}
+				},
+				error : function(xhr,status,error)
+				{
+					alert("실패");
+				}
+			});
+		}
+	}
+	
+	function DoCancel(obj){
+		
+		var uno = "${ login.uno }";
+		var sno = $(obj).data("sno");
+		
+		if(confirm("수강 신청 취소하시겠습니까?")){
+			$.ajax({
+				url: "applyCancel.do",
+				type: "get",
+				dataType: "html",
+				data :
+				{
+					uno : uno,
+					sno : sno
+				},
+				success : function(data)
+				{
+					data = data.trim();
+					if( data == "OK" )
+					{
+						alert("수강 신청이 취소되었습니다.");
+						location.reload();
+					}else
+					{
+						alert("수강 신청 취소에 실패했습니다.");
+					}
+				},
+				error : function(xhr,status,error)
+				{
+					alert("실패");
+				}
+			});
+		}
+		
+	}
+</script>
+    <div class="main-container">
+       <aside>
+         <div class="side-menu-top">
+          	<a href="../notice/list.do" class="menu-item">공지사항</a>
+             <a href="../apply/apply.do" class="menu-item active">수강 신청</a>
+             <a href="../task/list.do" class="menu-item">과제 관리</a>
+         </div>
+<%@ include file="../../include/student/side.jsp"%>
+       </aside>
+
+        <main>
+            <h2 class="content-title">수강 신청</h2>
+			<br>
+			
+			<!-- 내 수강 신청 내역 섹션 -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h3 class="section-title">내 수강 신청 내역</h3>
+                    <span class="info-text">총 <span class="count-info">${ myapplycnt }개</span> 신청</span>
+                </div>
+                
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th width="8%">번호</th>
+                            <th width="18%">과목명</th>
+                            <th width="12%">담당교수</th>
+                            <th width="25%">강의기간</th>
+                            <th width="20%">신청기간</th>
+                            <th width="17%">신청</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    	<jsp:useBean id="now" class="java.util.Date"/>
+                    	<fmt:formatDate value="${ now }" pattern="yyyyMMdd" var="today"/>
+                    	<c:set var="totalCount" value="${fn:length(applys)}" />
+                    	<c:forEach var="apply" items="${ sessionScope.applys }" varStatus="status">
+		                        <tr>
+		                        	<td>${totalCount - status.index}</td>
+		                            <td>${ apply.sname }</td>
+		                            <td>${ apply.uname }</td>
+		                            <td class="period-text">${ apply.sstart } ~ ${ apply.send }</td>
+		                            <td class="highlight-date">${ apply.astart } ~ ${ apply.aend }</td>
+		                            <td><button class="ubtn-cancel" data-sno="${ apply.sno }">신청 취소</button></td>
+		                        </tr>
+                        </c:forEach>
+                        </tbody>
+                </table>
+            </div>
+			
+            <!-- 필터 탭 -->
+            <div class="registration-tabs">
+            	<button name="classType" id="all" class="reg-tab ${kind == 'all' || empty kind ? 'active' : ''}" onclick="switchClassType('all');">전체</button>
+                <button name="classType" id="usable" class="reg-tab ${kind == 'usable' || empty kind ? 'active' : ''}" onclick="switchClassType('usable');">신청가능</button>
+                <button name="classType" id="closed" class="reg-tab ${kind == 'closed' || empty kind ? 'active' : ''}" onclick="switchClassType('closed');">지난강의</button>
+                <button name="classType" id="upcoming" class="reg-tab ${kind == 'upcoming' || empty kind ? 'active' : ''}" onclick="switchClassType('upcoming');">예정강의</button>
+			</div>
+
+            <!-- 개설 교과목 목록 섹션 -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h3 class="section-title">개설 교과목 목록</h3>
+                </div>
+                
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th width="7%">구분</th>
+                            <th width="15%">과목명</th>
+                            <th width="10%">담당교수</th>
+                            <th width="25%">강의기간</th>
+                            <th width="25%">신청기간</th>
+                            <th width="10%">신청현황</th>
+                            <th width="8%">신청</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                   		<c:forEach var="subject" items="${ subjects }">
+               			    <c:set var="statusClass" value="" />
+               			    <c:choose>
+	                            <c:when test="${ fn:replace(subject.astart, '-','') <= today && today <= fn:replace(subject.aend, '-','') }">
+	                            	<c:set var="statusClass" value="usable" />
+	                            </c:when>
+	                            <c:when test="${ fn:replace(subject.astart, '-','') > today }">
+	                            	<c:set var="statusClass" value="upcoming" />
+	                            </c:when>
+	                            <c:when test="${ fn:replace(subject.aend, '-','') < today }">
+	                            	<c:set var="statusClass" value="closed" />
+	                            </c:when>
+                        	</c:choose>
+               			    <tr class="subject-row ${statusClass}">
+                    	    	<c:choose>
+		                            <c:when test="${statusClass == 'usable'}">
+		                            	<td><span class="status-badge badge-apply">신청가능</span></td>
+		                            </c:when>
+		                            <c:when test="${statusClass == 'upcoming'}">
+		                            	<td><span class="status-badge badge-scheduled">예정강의</span></td>
+		                            </c:when>
+		                            <c:when test="${statusClass == 'closed'}">
+		                            	<td><span class="status-badge badge-past">지난강의</span></td>
+		                            </c:when>
+	                        	</c:choose>
+	                            <td>${ subject.sname }</td>
+	                            <td>${ subject.uname }</td>
+	                            <td class="period-text">${ subject.sstart } ~ ${ subject.send }</td>
+	                            <td class="highlight-date">${ subject.astart } ~ ${ subject.aend }</td>
+	                            <td><strong>${ subject.applycnt }</strong>&#47;${ subject.cnt }</td>
+	                            <c:choose>
+		                            <c:when test="${ fn:replace(subject.aend, '-','') < today }">
+		                            	<td><button class="btn-apply complete" disabled>마감</button></td>
+		                            </c:when>
+		                            <c:when test="${ subject.cnt == subject.applycnt }">
+		                            	<td><button class="btn-apply complete" disabled>정원마감</button></td>
+		                            </c:when>
+		                            <c:when test="${ fn:replace(subject.astart, '-','') <= today && today <= fn:replace(subject.aend, '-','') }">
+		                            	<td><button type="button" data-sno="${ subject.sno }" class="btn-apply btnApply">신청</button></td>
+		                            </c:when>
+		                            <c:otherwise>
+		                            	<td><button class="btn-apply expected" disabled>예정강의</button></td>
+		                            </c:otherwise>
+	                        	</c:choose>
+	                        </tr>
+		                </c:forEach>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="pagination gap-2" style="text-align: center;">
+				<c:if test="${ startbk != 1 }">
+					<a href="apply.do?kind=${ kind }&page=${ startbk - 1 }" class="page-num">◀</a>
+				</c:if> 
+				<c:forEach var="page" begin="${startbk}" end="${endbk}">
+					<a href="apply.do?kind=${ kind }&page=${ page }" class="page-num ${ page == currentpg ? 'active' : '' }">${ page }</a>
+				</c:forEach> 
+				<c:if test="${ endbk < maxpage }">
+					<a href="apply.do?kind=${ kind }&page=${ endbk + 1 }" class="page-num">▶</a>
+				</c:if>
+			</div>
+            
+        </main>
+        <!-- [CONTENT] MAIN END -->
+    </div>
+
+    <!-- 부트스트랩 JS (필요시 사용) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+	    <script>
+        function switchClassType(type) {
+	       	location.href = "apply.do?kind=" + type + "&page=1";
+        }         
+    </script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+package com.elms.control;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.elms.service.StudentService;
+import com.elms.vo.UserVO;
+
+@Controller
+@RequestMapping("/student")
+public class StudentController {
+
+	@Autowired
+	StudentService studentService;
+	
+	@RequestMapping(value = "/notice/list.do")
+	public String noticeList() {
+		return "student/notice/list";
+	}
+	
+	@RequestMapping(value = "/notice/view.do")
+	public String noticeView() {
+		return "student/notice/view";
+	}
+	
+	@RequestMapping(value = "/apply/apply.do")
+	public String applyApply() {
+		return "student/apply/apply";
+	}
+	
+	@RequestMapping(value = "/task/list.do")
+	public String taskList() {
+		return "student/task/list";
+	}
+	
+	@RequestMapping(value = "/task/t_view.do")
+	public String taskTview() {
+		return "student/task/t_view";
+	}
+	
+	@RequestMapping(value = "/task/write.do")
+	public String taskWrite() {
+		return "student/task/write";
+	}
+	
+	@RequestMapping(value = "/task/view.do")
+	public String taskView() {
+		return "student/task/view";
+	}
+	
+	@RequestMapping(value = "/task/update.do")
+	public String taskUpdate() {
+		return "student/task/update";
+	}
+	
+	@RequestMapping(value = "/user/update.do")
+	public String userUpdate() {
+		return "student/user/update";
+	}
+	
+	@RequestMapping(value = "/user/pwmatch.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String PwMatch(String id, String pw, HttpSession session) {
+		UserVO login = (UserVO)session.getAttribute("login");
+		if(login == null) return "redirect:/user/login.do";
+		boolean match = studentService.PwMatch(id, pw);
+		if( match == true) {
+			return "O";
+		}else {
+			return "X";
+		}
+	}
+	
+	@RequestMapping(value = "/user/updateok.do")
+	public String Updateok(String uid, Model model) {
+		UserVO vo = new UserVO();
+		vo.setUid(uid);
+		UserVO UserInfo = studentService.UserInfo(vo);
+		
+		model.addAttribute("num", UserInfo.getNum());
+		model.addAttribute("name", UserInfo.getName());
+		model.addAttribute("id", UserInfo.getUid());
+		model.addAttribute("hp", UserInfo.getHp());
+		model.addAttribute("major", UserInfo.getMajor());
+		return "student/user/updateok";
+	}
+	
+	@RequestMapping(value = "/user/infoupdate.do", method = RequestMethod.POST)
+	@ResponseBody
+	public String InfoUpdate(String id, String hp, String pw) {
+		studentService.InfoUpdate(id, hp, pw);
+		return "OK";
+	}
+	
+}

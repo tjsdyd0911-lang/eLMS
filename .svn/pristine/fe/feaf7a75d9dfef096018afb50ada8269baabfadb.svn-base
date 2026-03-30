@@ -1,0 +1,48 @@
+/************************************
+ * 클래스 : 회원정보(user) 테이블용 VO
+ * 작성자 : 박윤희
+ * 작성일 : 2026.02.03
+ * ***********************************/
+
+package com.elms.vo;
+
+public class UserVO {
+	private int    uno;   	//사용자 번호 
+	private String uid;   	//이메일
+	private String pw; 	  	//비밀번호
+	private String num;   	//학번/사번
+	private String name;	//이름
+	private String major;	//학과
+	private String hp;		//핸드폰번호
+	private String jdate;	//가입일
+	private String status;	//현재상태
+	private String appr;	//승인여부
+	private String utype;	//구분
+	
+	public int getUno() 	  { return uno;	  }
+	public String getUid()    { return uid;   }
+	public String getPw()     { return pw;	  }
+	public String getNum()    { return num;	  }
+	public String getName()   { return name;  }
+	public String getMajor()  { return major; }
+	public String getHp() 	  { return hp;	  }
+	public String getJdate()  { return jdate; }
+	public String getStatus() { return status;}
+	public String getAppr()   { return appr;  }
+	public String getUtype()  { return utype; }
+	
+	public void setUno(int uno) 	  	 { this.uno = uno; 		 }
+	public void setUid(String uid) 	 	 { this.uid = uid; 		 }
+	public void setPw(String pw) 		 { this.pw = pw; 		 }
+	public void setNum(String num) 		 { this.num = num;		 }
+	public void setName(String name) 	 { this.name = name;	 }
+	public void setMajor(String major)   { this.major = major;	 }
+	public void setHp(String hp) 		 { this.hp = hp;		 }
+	public void setJdate(String jdate) 	 { this.jdate = jdate;   }
+	public void setStatus(String status) { this.status = status; }
+	public void setAppr(String appr) 	 { this.appr = appr;	 }
+	public void setUtype(String utype) 	 { this.utype = utype;	 }
+	
+	
+	
+}

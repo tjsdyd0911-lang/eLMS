@@ -1,0 +1,77 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ include file="../../include/teacher/head.jsp" %>
+    <div class="main-container">
+      <aside>
+        <div class="side-menu-top">
+         	<a href="../notice/list.jsp" class="menu-item">공지사항</a>
+            <a href="../subject/list.jsp" class="menu-item">과목 관리</a>
+            <a href="../task/list.jsp" class="menu-item active">과제 게시판</a>
+        </div>
+<%@ include file="../../include/teacher/side.jsp" %>           
+      </aside>
+
+		<main class="view_main">
+            <div class="content-header">
+                <h2 class="content-title">과제 정보 조회</h2>
+                <nav aria-label="breadcrumb">
+                    <div class="breadcrumb">
+                       <a href="list.jsp"> 과제 게시판 &nbsp; </a> > &nbsp;  <span>과제 정보 조회</span>
+                    </div>
+                </nav>
+            </div>
+			<div class="edit_divider"></div>
+
+			<!-- 2. 과제 제목 -->
+			<div class="mb-4">
+				<label class="view_form-section-title">과제 제목</label> 
+                <input type="text" class="form-control" value="개인 웹사이트 테마 선정 및 기획안" readonly>
+			</div>
+
+			<!-- 3. 과제 내용 -->
+			<div class="mb-4">
+				<label class="view_form-section-title">과제 내용</label>
+				<div class="view_content-box">
+					1. 프로젝트 목적을 명확히 기술할 것<br> 2. 요구사항 명세서를 포함할 것<br> 3. 마감기한을
+					엄수할 것.<br> 4. 사용 기술 스택(HTML, CSS, JS 등)을 명시할 것<br> <br>
+					<br> • 참고자료는 아래 첨부파일을 확인하여 주시길 바랍니다.
+				</div>
+			</div>
+
+			<!-- 4. 정보 조회 행 -->
+			<div class="row view_info-row">
+				<div class="col-md-4">
+					<label class="view_form-section-title">구분</label> 
+                    <input type="text" class="form-control" value="중간과제" readonly>
+				</div>			
+				<div class="col-md-4">
+					<label class="view_form-section-title">제출 마감일</label> 
+                    <input type="text" class="form-control" value="2026/06/12" readonly>
+				</div>
+				<div class="col-md-4">
+					<label class="view_form-section-title">채점방식</label> 
+                    <input type="text" class="form-control" value="점수제(100점 만점)" readonly>
+				</div>
+			</div>
+			<br>
+            <!-- 첨부 파일 -->
+            <div class="form-group">
+                <label class="form-label">첨부 파일 <span class="sub-text">최대 50MB까지 가능합니다.</span></label>
+                <input type="file" class="form-control custom-input">
+            </div>
+
+			<!-- 6. 버튼 영역 -->
+			<!-- 점수확인되면 수정,삭제버튼 사라지게 -->
+			<div class="view_button-group">
+				<button type="button" class="btn-custom btn-list" onclick="location.href='list.jsp'">목록</button>
+				<button type="button" class="btn-custom btn-edit" onclick="location.href='update.jsp'">수정</button>
+				<button type="button" class="btn-custom btn-delete" onclick="location.href='list.jsp'">삭제</button>	
+			</div>
+
+		</main>
+	</div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

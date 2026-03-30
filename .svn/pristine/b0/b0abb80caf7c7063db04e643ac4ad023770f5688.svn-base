@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- Namespace를 통해 JAVA 클래스와 Annotation클래스와 동기 -->
+<mapper namespace="elms.notice">
+
+	<insert id="write" parameterType="com.elms.vo.NoticeVO"
+		useGeneratedKeys="true" keyProperty="nno">
+		insert into notice (title,content,wdate,pname,fname)
+		values
+		(#{title},#{content},now(),
+		<if test='fname != null and !fname.equals("")'>
+			#{pname},#{fname}
+		</if>
+		<if test='fname == null or fname.equals("")'>
+			null, null
+		</if>
+		)
+	</insert>
+	
+	<select id="view" parameterType="java.lang.String" 
+			resultType="com.elms.vo.NoticeVO">
+		select 
+			nno,title,content,wdate,pname,fname
+		from notice where nno = #{ nno }
+	</select>
+</mapper>

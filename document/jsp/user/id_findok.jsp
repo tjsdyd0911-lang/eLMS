@@ -1,0 +1,22 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ include file="../include/user/head.jsp" %>
+        <main>
+            <div class="result-card">
+                <p class="result-text">
+                    홍길동님의 아이디는 <br>
+                    <span class="id-highlight">a1234@gmail.com</span> 입니다.
+                </p>
+
+                <!-- 버튼 클릭 시 로그인 페이지로 이동하도록 설정 가능 -->
+                <button type="button" class="btn-redirect" onclick="location.href='login.jsp'">
+                    로그인하러 가기
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- 부트스트랩 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

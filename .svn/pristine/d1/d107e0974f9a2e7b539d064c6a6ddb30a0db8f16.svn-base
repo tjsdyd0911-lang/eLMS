@@ -1,0 +1,95 @@
+package com.elms.service;
+
+import java.util.List;
+
+import org.apache.ibatis.session.SqlSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.elms.vo.SearchVO;
+import com.elms.vo.SubjectVO;
+import com.elms.vo.UserVO;
+
+@Service
+public class TeacherService {
+
+	@Autowired
+	private SqlSession session;
+	
+	private static final String namespace = "elms.teacher";
+	
+	public boolean PwMatch(String id, String pw) {
+		UserVO vo = new UserVO();
+		vo.setUid(id);
+		vo.setPw(pw);
+		int match = session.selectOne(namespace + ".match", vo);
+		if( match != 0) {
+			return true;
+		}
+		return false;
+	}
+	
+	
+	public UserVO UserInfo(UserVO vo) {
+		UserVO UserInfo = session.selectOne(namespace + ".info", vo);
+		
+		return UserInfo;
+	}
+	
+	public void InfoUpdate(String id, String hp, String pw) {
+		UserVO vo = new UserVO();
+		vo.setUid(id);
+		vo.setHp(hp);
+		vo.setPw(pw);
+		session.update(namespace + ".infoupdate", vo);
+		
+	}
+	
+	public boolean SnameCheck(String sname) {
+		int check = session.selectOne(namespace + ".snamecheck", sname);
+		if( check == 0) {
+			return true;
+		}
+		return false;
+	}
+	
+	public void SubjectOk(SubjectVO vo) {
+		session.insert(namespace + ".subjectinsert", vo);
+	}
+	
+	public List<SubjectVO> subjectList(int uno, int page) {
+		SearchVO vo = new SearchVO();
+		vo.setPageno(page);
+		vo.setUno(uno);
+		List<SubjectVO> list = session.selectList(namespace + ".subjectlist", vo);
+		
+		return list;
+	}
+	
+	public int ApplyCount(int sno) {
+		int count = session.selectOne(namespace + ".applycount", sno);
+		return count;
+	}
+	
+	public void SubjectDel(String sno) {
+		session.delete(namespace + ".subjectdelete", sno);
+	}
+	
+	public void SubjectUpdate(SubjectVO vo) {
+		session.update(namespace + ".subjectupdate", vo);
+	}
+	
+	public SubjectVO SubjectSearch(int uno, int sno) {
+		SubjectVO vo = new SubjectVO();
+		vo.setUno(uno);
+		vo.setSno(sno);
+		vo = session.selectOne(namespace + ".subjectsearch", vo);
+
+		return vo;
+	}
+	
+	public int GetTotal(int uno) {
+		return session.selectOne(namespace + ".total", uno);
+	}
+}

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="elms.user">
+	<insert id="join" parameterType="com.elms.vo.UserVO"
+			useGeneratedKeys="true" keyProperty="uno">
+	insert into user 
+		(uno, uid, pw, num, name, major, hp)
+	values
+		(#{uno}, #{uid}, md5(#{pw}), #{num}, #{name}, #{major}, #{hp})
+	</insert>
+	
+	<select id="login" parameterType="com.elms.vo.UserVO" resultType="com.elms.vo.UserVO">
+	select * from user 
+	where uid = #{uid} and pw = md5(#{pw})
+	</select>
+</mapper>

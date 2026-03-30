@@ -1,0 +1,46 @@
+/************************************
+ * 클래스 : 과제(task) 테이블용 VO
+ * 작성자 : 박윤희
+ * 작성일 : 2026.02.03
+ * ***********************************/
+package com.elms.vo;
+
+public class TaskVO {
+	private int    tno;    	 //과제번호
+	private int    sno;    	 //과목번호
+	private String title;    //과제제목
+	private String content;  //과제내용
+	private String edate;    //제출마감일
+	private String stype;    //채점방식
+	private String ttype;    //과제구분
+	private String pname;    //물리파일
+	private String fname;    //논리파일
+	private String wdate;    //과제등록일
+	
+	public int getTno() 	   { return tno;	 }
+	public int getSno() 	   { return sno;	 }
+	public String getTitle()   { return title;	 }
+	public String getContent() { return content; }
+	public String getEdate()   { return edate;	 }
+	public String getStype()   { return stype;	 }
+	public String getTtype()   { return ttype;	 }
+	public String getPname()   { return pname;	 }
+	public String getFname()   { return fname;	 }
+	public String getWdate()   { return wdate;	 }
+	
+	public void setTno(int tno) 		   { this.tno = tno;		 }
+	public void setSno(int sno) 		   { this.sno = sno;		 }
+	public void setTitle(String title) 	   { this.title = title;	 }
+	public void setContent(String content) { this.content = content; }
+	public void setEdate(String edate) 	   { this.edate = edate;	 }
+	public void setStype(String stype) 	   { this.stype = stype;	 }
+	public void setTtype(String ttype) 	   { this.ttype = ttype;	 }
+	public void setPname(String pname) 	   { this.pname = pname;	 }
+	public void setFname(String fname)     { this.fname = fname;	 }
+	public void setWdate(String wdate)     { this.wdate = wdate;	 }
+	
+	
+	
+	
+	
+}

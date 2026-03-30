@@ -1,0 +1,918 @@
+@charset "UTF-8";
+
+/* =========================================
+   1. 기본 레이아웃 (Global Layout)
+   ========================================= */
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+	font-family: 'Noto Sans KR', sans-serif;
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+	background-color: #f5f5f5;
+	color: #333;
+}
+
+a {
+	text-decoration: none;
+	color: inherit;
+	transition: all 0.2s;
+}
+
+header {
+	background-color: #0E4E21;
+	color: white;
+	display: flex;
+	align-items: center;
+	padding: 0 30px;
+	height: 100px;
+	z-index: 10;
+	min-width: 1100px;
+	flex-shrink: 0;
+}
+
+.logo-section {
+	display: flex;
+	align-items: center;
+	gap: 15px;
+	flex-shrink: 0;
+}
+
+.logo-box {
+	background-color: #3498db;
+	color: white;
+	padding: 5px 10px;
+	border-radius: 4px;
+	font-weight: bold;
+	font-size: 20px;
+}
+
+.university-name {
+	font-size: 30px;
+	font-weight: 700;
+	color: white;
+}
+
+.search-bar-container {
+	position: relative;
+	margin-left: 50px;
+	display: flex;
+	align-items: center;
+}
+
+.search-bar {
+	background-color: rgba(255, 255, 255, 0.15);
+	border: none;
+	border-radius: 20px;
+	padding: 8px 45px 8px 20px;
+	width: 400px;
+	height: 45px;
+	color: #fff;
+	outline: none;
+	font-size: 14px;
+}
+
+.search-bar::placeholder { color: rgba(255,255,255,0.6); }
+
+.search-icon {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-40%);
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.user-info {
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+	gap: 15px;
+	font-size: 14px;
+}
+
+.btn-header {
+	border: 1px solid rgba(255, 255, 255, 0.4);
+	background: none;
+	color: white;
+	padding: 8px 15px;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 13px;
+	margin-left: 10px;
+}
+
+.main-container {
+	display: flex;
+	flex: 1;
+	overflow: hidden;
+}
+
+aside {
+	width: 250px;
+	background-color: #0E4E21;
+	padding-top: 20px;
+	padding-bottom: 30px;
+	flex-shrink: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.side-menu-bottom {
+	margin-top: auto;
+	border-top: 1px solid rgba(255, 255, 255, 0.1);
+	padding-top: 10px;
+}
+
+.menu-section-title {
+	color: #FFD700;
+	padding: 20px 0 10px 50px;
+	font-size: 16px;
+	font-weight: 700;
+}
+
+.menu-item {
+	padding: 15px 0 15px 50px;
+	color: white;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	font-size: 15px;
+}
+
+.menu-item.active {
+	background-color: white;
+	color: #3498db;
+	margin-left: 20px;
+	padding-left: 30px;
+	border-radius: 25px 0 0 25px;
+	font-weight: bold;
+}
+
+.course-item {
+	padding: 10px 0 10px 50px;
+	color: #ddd;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 14px;
+}
+
+.course-item.active {
+	color: white;
+	font-size: 17px;
+	font-weight: 700;
+}
+
+.dot {
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	display: inline-block;
+}
+
+main {
+	flex: 1;
+	background-color: #ffffff;
+	padding: 40px 60px;
+	border-top-left-radius: 25px;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+}
+
+/* =========================================
+   2. 공통 컴포넌트 (Tables, Buttons, Pagination)
+   ========================================= */
+.pagination {
+	display: flex;
+	justify-content: center;
+	margin-top: 40px;
+	gap: 5px;
+}
+
+.page-num {
+	width: 30px;
+	height: 30px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 4px;
+	border: 0.5px solid #3498db;
+	background-color: white;
+	font-size: 13px;
+}
+
+.page-num.active {
+	background-color: #3498db;
+	color: white;
+}
+
+.table th {
+	background-color: #f8f9fa;
+	font-weight: 700;
+	vertical-align: middle;
+	text-align: center;
+	border-top: 1px solid #dee2e6;
+}
+
+.table td {
+	vertical-align: middle;
+	text-align: center;
+	font-size: 14px;
+	padding: 15px 10px;
+}
+
+/* 뱃지 스타일 */
+.badge-pill {
+	display: inline-block;
+	padding: 6px 12px;
+	border-radius: 50px;
+	font-size: 12px;
+	font-weight: 700;
+	color: white;
+	min-width: 70px;
+	text-align: center;
+}
+
+.bg-gray {
+	background-color: #95a5a6;
+}
+
+.bg-green-dark {
+	background-color: #2ecc71;
+}
+
+.bg-orange {
+	background-color: #f39c12;
+}
+
+/*첨부파일 추가 영역 */
+.attachment-bar {
+	background-color: #f8f9fa;
+	border: 1px solid #eee;
+	border-radius: 8px;
+	padding: 12px 20px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 10px;
+}
+
+/* =========================================
+   5. 테이블 스타일 통합
+   ========================================= */
+.notice-table, .custom-table, .assignment-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+/* 테이블 헤더 */
+.notice-table th, .custom-table th, .assignment-table th {
+	padding: 15px 10px;
+	color: #666;
+	font-weight: 500;
+	text-align: center;
+}
+
+.notice-table th {
+	border-top: 1px solid #eee;
+	border-bottom: 1px solid #eee;
+	text-align: left;
+}
+
+.custom-table th {
+	background-color: #f8f9fa;
+	color: #333;
+	border-bottom: 2px solid #dee2e6;
+}
+
+.assignment-table th {
+	color: #333;
+	font-size: 14px;
+	font-weight: 700;
+	border-bottom: 2px solid #f1f1f1;
+}
+
+/* 테이블 데이터 */
+.notice-table td, .custom-table td, .assignment-table td {
+	padding: 20px 10px;
+	border-bottom: 1px solid #f9f9f9;
+	color: #444;
+	vertical-align: middle;
+	text-align: center;
+}
+
+.notice-table td {
+	padding: 20px 10px;
+	color: #444;
+}
+
+.custom-table td {
+	padding: 15px 10px;
+	border-bottom: 1px solid #eee;
+	font-size: 15px;
+}
+
+.assignment-table td {
+	padding: 18px 10px;
+	font-size: 15px;
+}
+
+/* 테이블 특정 컬럼 정렬 및 스타일 */
+.notice-table th.center {
+	text-align: center;
+}
+
+.notice-table th.right {
+	text-align: right;
+}
+
+.col-no {
+	width: 60px;
+	text-align: center;
+	color: #888;
+}
+
+.col-date {
+	width: 120px;
+	text-align: right;
+	color: #888;
+}
+
+.td-subject {
+	text-align: left !important;
+	font-weight: bold;
+	color: #333;
+}
+
+.td-title {
+	text-align: left !important;
+	font-weight: 500;
+	color: #111;
+}
+
+/* =========================================
+   3. 페이지별 전용 스타일 (Specific Pages)
+   ========================================= */
+
+/* [공지사항/과제 상세 공통] */
+.view-divider {
+	height: 1px;
+	background-color: #dee2e6;
+	border: none;
+	margin-bottom: 30px;
+}
+
+.view-title {
+	font-size: 28px;
+	font-weight: 700;
+	margin-bottom: 15px;
+	color: #222;
+}
+
+.view-meta {
+	font-size: 14px;
+	color: #666;
+	margin-bottom: 15px;
+	display: flex;
+	gap: 20px;
+}
+
+.view-content {
+	font-size: 15px;
+	line-height: 1.8;
+	color: #444;
+	min-height: 300px;
+}
+
+/* [회원정보 수정 전용 카드형] */
+.content-title {
+	font-size: 24px;
+	font-weight: 700;
+	color: #111;
+	margin-bottom: 0 !important;
+}
+
+.content-center-wrapper {
+	flex: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+}
+
+.verify-card, .edit-card {
+	background: white;
+	padding: 60px 80px;
+	border-radius: 15px;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+	width: 100%;
+	max-width: 650px;
+	text-align: center;
+}
+
+.verify-card h3 {
+	font-weight: 800;
+	color: #2D3E50;
+	margin-bottom: 15px;
+}
+
+.verify-card p {
+	color: #888;
+	font-size: 14px;
+	margin-bottom: 40px;
+}
+
+.edit-card {
+	max-width: 900px;
+	padding: 50px;
+	text-align: left;
+}
+
+.custom-input {
+	background-color: #f9f9f9 !important;
+	border: 1px solid #eee !important;
+	height: 50px;
+	border-radius: 8px;
+	margin-bottom: 30px;
+	width: 100%;
+	padding: 12px 20px !important;
+	font-size: 14px;
+	color: #555;
+	outline: none;
+}
+
+textarea.custom-input {
+	min-height: 250px;
+	resize: none;
+}
+
+.editable {
+	background-color: #ffffff !important;
+}
+
+.form-label {
+	font-weight: 700;
+	font-size: 14px;
+	color: #333;
+	margin-bottom: 8px;
+	display: block;
+}
+
+.btn-verify {
+	background-color: #2D3E50 !important;
+	color: white;
+	border: none;
+	height: 55px;
+	width: 100%;
+	border-radius: 8px;
+	font-weight: 700;
+}
+
+.btn-upsubmit {
+	background-color: #3498db !important;
+	color: white;
+	border: none;
+	flex: 1.5;
+	height: 50px;
+	border-radius: 8px;
+	font-weight: 700;
+	padding: 12px 150px;
+	font-size: 16px;
+}
+
+.btn-upcancel {
+	background-color: #bdc3c7 !important;
+	color: white;
+	border: none;
+	flex: 1;
+	height: 50px;
+	border-radius: 8px;
+	font-weight: 700;
+	padding: 12px 179px;
+	font-size: 16px;
+}
+
+.btn-list {
+	background-color: #95a5a6; /* 이미지와 유사한 회색 */
+	color: white;
+	border: none;
+	padding: 12px 35px;
+	border-radius: 8px;
+	font-size: 15px;
+	cursor: pointer;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	transition: background 0.3s;
+}
+
+.btn-list:hover {
+	background-color: #7f8c8d;
+}
+
+.btn-green {
+	background-color: #008040; /* 초록버튼 */
+	color: white;
+	border: none;
+	padding: 12px 35px;
+	border-radius: 8px;
+	font-size: 15px;
+	cursor: pointer;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	transition: background 0.3s;
+}
+
+.btn-green:hover {
+	background-color: #004d26;
+}
+
+.btn-download {
+	background: #fff;
+	border: 1px solid #ddd;
+	padding: 4px 12px;
+	border-radius: 4px;
+	font-size: 12px;
+	color: #666;
+	cursor: pointer;
+}
+
+.view-footer {
+	display: flex;
+	justify-content: center;
+	margin-top: 50px;
+	padding-bottom: 30px;
+}
+
+.form-footer {
+	display: flex;
+	gap: 15px;
+	margin-top: 10px;
+	justify-content: center;
+}
+
+/* [채점 모달 전용] */
+.task-modal-container {
+	height: 650px;
+	display: flex;
+}
+
+.task-modal-sidebar {
+	width: 300px;
+	background-color: #f8f9fa;
+	border-right: 1px solid #dee2e6;
+	overflow-y: auto;
+}
+
+.task-student-item {
+	padding: 20px 15px;
+	border-bottom: 1px solid #eee;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	cursor: pointer;
+}
+
+.task-student-item.active {
+	background-color: #fff;
+	border-left: 5px solid #3498db;
+	font-weight: 700;
+}
+
+.task-modal-grading-area {
+	flex: 1;
+	padding: 30px;
+	overflow-y: auto;
+}
+
+/* [과제 등록/수정/조회 접두어 유지] */
+.view_form-section-title, .write_form-section-title,
+	.edit_form-section-title {
+	font-weight: 700;
+	font-size: 18px;
+	color: #2c3e50;
+	margin-bottom: 12px;
+	display: block;
+}
+
+.view_content-box {
+	border: 1px solid #ced4da;
+	padding: 20px;
+	min-height: 200px;
+	line-height: 1.6;
+}
+
+/* 과제 등록 버튼 */
+.btn-batch-approve {
+	position: relative;
+	right: 0;
+	background-color: #3498db;
+	color: white;
+	border: none;
+	padding: 10px 20px;
+	border-radius: 4px;
+	font-weight: 600;
+	font-size: 14px;
+}
+
+.btn-batch-cancel {
+	position: relative;
+	right: 0;
+	background-color: #c0c0c0;
+	color: white;
+	border: none;
+	padding: 10px 20px;
+	border-radius: 4px;
+	font-weight: 600;
+	font-size: 14px;
+}
+
+/* 제목 및 브레드크럼 컨테이너 (한 줄 배치 통합) */
+.content-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px; /* 상황에 따라 15px~30px 조정됨 */
+}
+
+.breadcrumb {
+	display: flex;
+	justify-content: flex-end;
+	background-color: transparent;
+	padding: 0;
+	margin-bottom: 0 !important;
+	font-size: 14px;
+	font-weight: bold;
+	color: #888;
+	text-align: right;
+}
+
+.breadcrumb span {
+	color: #3498db;
+}
+
+.write_button-group {
+	align: center;
+}
+/* view.jsp 하단버튼*/
+.btn-list {
+	background-color: #95a5a6;
+	color: white;
+}
+
+.btn-edit {
+	background-color: #3498db;
+	color: white;
+}
+
+.btn-delete {
+	background-color: #e74c3c;
+	color: white;
+}
+
+.btn-custom {
+	padding: 10px 40px;
+	font-size: 16px;
+	font-weight: 600;
+	border-radius: 4px;
+	border: none;
+	transition: background 0.2s;
+}
+
+.view_button-group {
+	display: flex;
+	justify-content: center;
+	gap: 10px;
+	margin-top: 40px;
+	border-top: 1px solid #dee2e6;
+	padding-top: 30px;
+}
+
+/* =========================================
+   채점 모달 (Grading Modal) 전용 스타일
+   ========================================= */
+
+/* 모달 컨테이너 및 헤더 */
+.task-modal-content {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.task-modal-header {
+    background-color: #0E4E21; /* 진녹색 헤더 */
+    color: white;
+}
+
+.task-modal-title {
+    font-weight: 700;
+}
+
+.task-modal-container {
+    height: 650px; /* 고정 높이 */
+}
+
+/* 좌측 사이드바 */
+.task-modal-sidebar {
+    width: 300px;
+    background-color: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+}
+
+.task-sidebar-header {
+    padding: 15px;
+    font-weight: 700;
+    font-size: 14px;
+    color: #666;
+    background-color: #f1f3f5;
+}
+
+.task-student-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.task-student-item {
+    padding: 20px 15px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.task-student-item:hover {
+    background-color: #f1f3f5;
+}
+
+.task-student-item.active {
+    background-color: #ffffff;
+    border-left: 5px solid #3498db;
+    font-weight: 700;
+}
+
+.task-badge-submitted {
+    background-color: #2ecc71;
+    color: white;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 12px;
+}
+
+.task-badge-missing {
+    background-color: #95a5a6;
+    color: white;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 12px;
+}
+
+/* 우측 상세 영역 */
+.task-modal-grading-area {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+}
+
+.task-tag-blue {
+    background-color: #e3f2fd;
+    color: #3498db;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 700;
+    margin-right: 5px;
+}
+
+.task-tag-green {
+    background-color: #2ecc71;
+    color: white;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 700;
+}
+
+.task-modal-subject {
+    font-weight: 800;
+    margin: 15px 0 5px 0;
+}
+
+.task-modal-meta {
+    font-size: 13px;
+    color: #adb5bd;
+    margin-bottom: 20px;
+}
+
+.task-submission-box {
+    background-color: #f8f9fa;
+    border: 1px solid #eee;
+    padding: 15px;
+    border-radius: 8px;
+    min-height: 80px;
+    margin-bottom: 15px;
+}
+
+/* 파일 바 */
+.task-file-bar {
+    background-color: #fff;
+    border: 1px solid #eee;
+    padding: 10px 15px;
+    border-radius: 8px;
+}
+
+.task-file-name {
+    font-weight: 500;
+}
+
+.task-btn-outline {
+    border: 1px solid #ddd;
+    font-size: 12px;
+    color: #666;
+    margin-right: 5px;
+}
+
+.task-btn-blue-sm {
+    background-color: #3498db;
+    color: white;
+    font-size: 12px;
+}
+
+/* 채점 폼 요소 */
+.task-form-title {
+    font-weight: 800;
+    margin-bottom: 20px;
+}
+
+.task-label {
+    display: block;
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.task-input {
+    background-color: #fff;
+    border: 1px solid #ddd;
+}
+
+.task-input-gray {
+    background-color: #f1f3f5;
+    border: 1px solid #ddd;
+    font-weight: 700;
+}
+
+.task-textarea {
+    resize: none;
+}
+
+/* 업로드 박스 */
+.task-upload-box {
+    border: 2px dashed #ddd;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.task-btn-file {
+    background-color: #f8f9fa;
+    border: 1px solid #333;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.task-btn-submit {
+    background-color: #3498db;
+    color: white;
+    font-weight: 700;
+    padding: 12px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+}
+
+.task-btn-submit:hover {
+    background-color: #2980b9;
+    color: white;
+}
+
+
+/* PDF 미리보기 영역 스타일 */
+.task-pdf-preview-area {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 25px;
+    background-color: #f1f3f5;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+#pdfFrame {
+    display: block;
+    background-color: #ffffff;
+}

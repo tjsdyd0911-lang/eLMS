@@ -1,0 +1,103 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ include file="../../include/admin/head.jsp" %>
+    <div class="main-container">
+        <aside>
+            <div class="side-menu-top">
+                <a href="../notice/list.jsp" class="menu-item">공지사항</a>
+                <a href="../teacher/list.jsp" class="menu-item active">교사 관리</a>
+                <a href="../student/list.jsp" class="menu-item">학생 관리</a>
+            </div>
+        </aside>
+		<!-- 본문 내용 -->
+		<main class="content-area">
+			<!-- 상단 제목 및 버튼 -->
+			<div class="d-flex justify-content-between align-items-center">
+				<h2 class="page-title">교사 관리</h2>
+				<div class="d-flex gap-2">
+					<select class="form-select form-select-sm">
+						<option selected>상태변경</option>
+						<option value="1">재직</option>
+						<option value="2">휴직</option>
+						<option value="3">퇴직</option>
+					</select>
+					<button class="btn-top-green">변경사항 저장</button>
+				</div>
+			</div>
+
+			<!-- 구분선 -->
+			<hr style="border-top: 1px solid #dee2e6; margin-bottom: 0;">
+
+			<!-- 테이블 -->
+			<table class="custom-table">
+				<colgroup>
+					<col style="width: 5%;">
+					<col style="width: 10%;">
+					<col style="width: 15%;">
+					<col style="width: 15%;">
+					<col style="width: 20%;">
+					<col style="width: 15%;">
+					<col style="width: 15%;">
+				</colgroup>
+				<thead>
+					<tr>
+						<th><input type="checkbox" class="form-check-input"></th>
+						<th>번호</th>
+						<th>사번</th>
+						<th>이름</th>
+						<th>가입일</th>
+						<th>승인여부</th>
+						<th>현재상태</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td><input type="checkbox" class="form-check-input"></td>
+						<td>3</td>
+						<td>p12345</td>
+						<td>김철수</td>
+						<td>2024-05-10</td>
+						<td><span class="status-badge badge-waiting">승인대기</span></td>
+						<td><span class="status-badge badge-active">재직</span></td>
+					</tr>
+					<tr>
+						<td><input type="checkbox" class="form-check-input"></td>
+						<td>2</td>
+						<td>p18756</td>
+						<td>이영희</td>
+						<td>2024-04-15</td>
+						<td><span class="status-badge badge-approved">승인완료</span></td>
+						<td><span class="status-badge badge-leave">휴직</span></td>
+					</tr>
+					<tr>
+						<td><input type="checkbox" class="form-check-input"></td>
+						<td>1</td>
+						<td>p24587</td>
+						<td>박지성</td>
+						<td>2024-03-20</td>
+						<td><span class="status-badge badge-approved">승인완료</span></td>
+						<td><span class="status-badge badge-retired">퇴직</span></td>
+					</tr>
+				</tbody>
+			</table>
+
+			<!-- 하단 페이지네이션 및 버튼 -->
+			<div class="pagination gap-2">
+				<a href="#" class="page-num">◀</a>
+                <a href="#" class="page-num choice">1</a>
+                <a href="#" class="page-num">2</a>
+                <a href="#" class="page-num">3</a>
+                <a href="#" class="page-num">4</a>
+                <a href="#" class="page-num">5</a>
+                <a href="#" class="page-num">▶</a>
+			</div>
+			<div style="float:right;">
+				<button class="btn-batch-approve">선택 일괄 승인</button>
+			</div>
+		</main>
+	</div>
+	<!-- 부트스트랩 JS (필요시) -->
+	<script
+		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="elms.user">
+	<insert id="join" parameterType="com.elms.vo.UserVO" useGeneratedKeys="true" keyProperty="uno">
+		insert into user 
+			(uno, uid, pw, num, name, major, hp, utype, appr)
+		values
+			(#{uno}, #{uid}, md5(#{pw}), #{num}, #{name}, #{major}, #{hp}, #{utype}, 
+	        <choose>
+               <when test='utype == "S"'>'Y'</when>
+               <when test='utype == "T"'>'N'</when>
+               <when test='utype == "A"'>'Y'</when>
+               <otherwise>'N'</otherwise> 
+            </choose>
+			)
+	</insert>
+	
+	<select id="login" parameterType="com.elms.vo.UserVO" resultType="com.elms.vo.UserVO">
+		select * from user 
+		where uid = #{uid} and pw = md5(#{pw})
+	</select>
+	
+	<select id="checkid" parameterType="com.elms.vo.UserVO" resultType="com.elms.vo.UserVO">
+		select * from user where uid = #{uid}
+	</select>
+	
+	<select id="checknum" parameterType="com.elms.vo.UserVO" resultType="com.elms.vo.UserVO">
+		select * from user where num = #{num}
+	</select>
+	
+	<select id="idfind" parameterType="com.elms.vo.UserVO" resultType="com.elms.vo.UserVO">
+		select * from user
+		where num = #{num} and name = #{name} and hp = #{hp} and utype = #{utype}
+	</select>
+	
+	<select id="pwfind" parameterType="com.elms.vo.UserVO" resultType="com.elms.vo.UserVO">
+		select * from user
+		where uid = #{uid} and num = #{num} and name = #{name} and hp = #{hp}
+	</select>
+	
+	<update id="pwupdate" parameterType="com.elms.vo.UserVO">
+		update user set pw = md5(#{pw}) where uid = #{uid}
+	</update>
+</mapper>

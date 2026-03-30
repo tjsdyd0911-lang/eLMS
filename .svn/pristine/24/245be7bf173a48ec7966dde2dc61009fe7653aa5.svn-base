@@ -1,0 +1,101 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ include file="../include/user/head.jsp" %>
+<script>
+	function PwUpdate() {
+		SetPw();
+		var queryString = $("#pwFrm").serialize();
+
+		$.ajax({
+			type : "post",	
+			url : "pw_update.do",
+			data : queryString,
+			dataType : "html",
+			success : function(result)
+			{
+				alert("비밀번호가 변경되었습니다.");
+				document.location = "login.do";
+			},
+			error: function(xhr, status, error)
+			{
+				alert(error);
+			}
+		});		
+	}
+	
+	//비밀번호 영문 숫자 특수조합 확인하는 함수
+	function SetPw()
+	{
+		const pw = $("#pw").val();
+		const pwcheck = $("#pwcheck").val();
+		
+	    const pwRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*])[a-zA-Z\d!@#$%^&*]{8,16}$/;
+	
+	    if ( !pwRegex.test(pw) ) {
+	        $("#pmsg").html("비밀번호는 영문, 숫자, 특수문자를 포함하여 8~16자로 설정해주세요.");
+			$("#pmsg").css("color","red");	
+	        $("#pw").focus();
+	        return false;
+	    }
+	    if( pwRegex.test(pw) && pw != "" ) { $("#pmsg").hide(); }
+	    
+	    if( pwcheck != "" && pwcheck != pw ) { 
+		    $("#pmsg").show().css("color","red"); 
+		    $("#pmsg").html("비밀번호가 일치하지 않습니다.");  
+		    return false; 
+		} else { $("#pmsg").hide(); return true; }
+	}
+	
+	function EyePw() {
+	    const pwInput = $("#pw");
+	    
+	    if (pwInput.attr("type") === "password") {
+	        pwInput.attr("type", "text");
+	        $("#pw").removeClass("fa-eye").addClass("fa-eye-slash");
+	    } else {
+	        pwInput.attr("type", "password");
+	        $("#pw").removeClass("fa-eye-slash").addClass("fa-eye");
+	    }
+	}
+	
+</script>
+        <main>
+            <div class="reset-card">
+                <h2>비밀번호 재설정</h2>
+                
+                <p class="instruction-text">
+                    이메일 주소(ID) <span class="user-id-highlight">${ maskedId }</span> 의
+                    <br>새 비밀번호를 등록해주세요.
+                </p>
+
+                <form id="pwFrm" name="pwFrm" method="post" action="pw_update.do">
+                	<input type="hidden" id="uid" name="uid" value="${ id }">
+                    <div class="text-start">
+                        <label class="form-label">새 비밀번호</label>
+                         <!-- 아이콘 배치를 위해 input을 감싸는 div 추가 -->
+						    <div class="position-relative">
+						        <input type="password" id="pw" name="pw" minlength="8" maxlength="16" class="form-control custom-input" 
+						                placeholder="8자 이상 16자 이하의 비밀번호" onkeyup="SetPw();">
+						        <i id="togglePw" class="fa fa-eye position-absolute top-50 end-0 translate-middle-y me-3" 
+						           style="cursor: pointer; z-index: 10;" onclick="EyePw();"></i>
+						    </div>
+                    </div>
+                    
+                    <div class="text-start">
+                        <label class="form-label">새 비밀번호 확인</label>
+                        <input type="password" id="pwcheck" name="pwcheck" minlength="8" maxlength="16"  class="form-control custom-input" placeholder="비밀번호를 다시 입력해주세요." onkeyup="SetPw();">
+                    </div>
+                    <span id="pmsg"></span>  
+                    <!-- 비밀번호 변경시 alert로 변경완료 알림 -->
+                    <button type="button" class="btn btn-find" onclick="PwUpdate();">비밀번호 변경</button></a>
+                </form>
+
+                <a href="login.do" class="footer-link">로그인하러 가기</a>
+            </div>
+        </main>
+    </div>
+
+    <!-- 부트스트랩 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

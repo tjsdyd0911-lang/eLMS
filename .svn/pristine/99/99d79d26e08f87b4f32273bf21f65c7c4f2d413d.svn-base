@@ -1,0 +1,49 @@
+package com.elms.control;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/student")
+public class StudentController {
+
+	@RequestMapping(value = "/notice/list.do")
+	public String noticeList() {
+		return "student/notice/list";
+	}
+	
+	@RequestMapping(value = "/notice/view.do")
+	public String noticeView() {
+		return "student/notice/view";
+	}
+	
+	@RequestMapping(value = "/apply/apply.do")
+	public String applyApply() {
+		return "student/apply/apply";
+	}
+	
+	@RequestMapping(value = "/task/list.do")
+	public String taskList() {
+		return "student/task/list";
+	}
+	
+	@RequestMapping(value = "/task/t_view.do")
+	public String taskTview() {
+		return "student/task/t_view";
+	}
+	
+	@RequestMapping(value = "/task/write.do")
+	public String taskWrite() {
+		return "student/task/write";
+	}
+	
+	@RequestMapping(value = "/task/view.do")
+	public String taskView() {
+		return "student/task/view";
+	}
+	
+	@RequestMapping(value = "/task/update.do")
+	public String taskUpdate() {
+		return "student/task/update";
+	}
+}

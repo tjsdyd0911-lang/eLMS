@@ -1,0 +1,43 @@
+package com.elms.service;
+
+import org.apache.ibatis.session.SqlSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.elms.vo.UserVO;
+
+@Service
+public class StudentService {
+
+	@Autowired
+	private SqlSession session;
+	
+	private static final String namespace = "elms.student";
+	
+	public boolean PwMatch(String id, String pw) {
+		UserVO vo = new UserVO();
+		vo.setUid(id);
+		vo.setPw(pw);
+		int match = session.selectOne(namespace + ".match", vo);
+		if( match != 0) {
+			return true;
+		}
+		return false;
+	}
+	
+	
+	public UserVO UserInfo(UserVO vo) {
+		UserVO UserInfo = session.selectOne(namespace + ".info", vo);
+		
+		return UserInfo;
+	}
+	
+	public void InfoUpdate(String id, String hp, String pw) {
+		UserVO vo = new UserVO();
+		vo.setUid(id);
+		vo.setHp(hp);
+		vo.setPw(pw);
+		session.update(namespace + ".update", vo);
+		
+	}
+}

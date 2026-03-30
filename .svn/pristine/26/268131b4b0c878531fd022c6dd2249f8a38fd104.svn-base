@@ -1,0 +1,65 @@
+/****************************************************************
+ * 클래스 : 수강과제(submission) 테이블용 VO
+ * 작성자 : 박윤희
+ * 작성일 : 2026.02.03
+ * [2026.02.13]백세원
+ * 		- 수정 내용 : 제출자 이름(name), 제출자 학번(num),
+ * 		 		   제출한 과제 과목명(sname), 내가 선택한 과제제목(ttitle)
+ * **************************************************************/
+package com.elms.vo;
+
+public class SubmissionVO {
+	private int    smno; 	 //수강과제번호
+	private String title; 	 //제출과제제목
+	private String pname; 	 //과제첨부 물리파일
+	private String fname; 	 //과제첨부 논리파일
+	private String content;  //수강과제내용
+	private String smdate;   //제출일
+	private String scheck;   //채점여부
+	private String score; 	 //최종점수
+	private String feedback; //피드백내용
+	private String fpname; 	 //피드백 물리파일
+	private String ffname; 	 //피드백 논리파일
+	private int    uno; 	 //사용자번호
+	private int    tno; 	 //과제번호
+	private String name;	 //제출자 이름
+	private String num;   	 //제출자 학번
+	private String sname;    //제출한 과제 과목명
+	private String ttitle;   //내가 선택한 과제제목
+	
+	public int getSmno() 	    { return smno;	   }
+	public String getTitle()    { return title;    }
+	public String getPname()    { return pname;	   }
+	public String getFname()    { return fname;	   }
+	public String getContent() 	{ return content;  }
+	public String getSmdate()   { return smdate;   }
+	public String getScheck()   { return scheck;   }
+	public String getScore() 	{ return score;	   }
+	public String getFeedback() { return feedback; }
+	public String getFpname() 	{ return fpname;   }
+	public String getFfname() 	{ return ffname;   }
+	public int getUno() 		{ return uno;	   }
+	public int getTno() 		{ return tno; 	   }
+	public String getName() 	{ return name;     }
+	public String getNum() 		{ return num;	   }
+	public String getSname() 	{ return sname;    }
+	public String getTtitle() 	{ return ttitle;   }
+	
+	public void setSmno(int smno) 		     { this.smno = smno;		 }
+	public void setTitle(String title) 		 { this.title = title;		 }
+	public void setPname(String pname) 		 { this.pname = pname;		 }
+	public void setFname(String fname) 		 { this.fname = fname;		 }
+	public void setContent(String content)   { this.content = content;	 }
+	public void setSmdate(String smdate) 	 { this.smdate = smdate;	 }
+	public void setScheck(String scheck) 	 { this.scheck = scheck;	 }
+	public void setScore(String score) 		 { this.score = score;		 }
+	public void setFeedback(String feedback) { this.feedback = feedback; }
+	public void setFpname(String fpname) 	 { this.fpname = fpname;	 }
+	public void setFfname(String ffname) 	 { this.ffname = ffname;	 }
+	public void setUno(int uno) 			 { this.uno = uno;			 }
+	public void setTno(int tno) 			 { this.tno = tno;			 }
+	public void setName(String name) 		 { this.name = name;		 }
+	public void setNum(String num) 			 { this.num = num;			 }
+	public void setSname(String sname) 		 { this.sname = sname;		 }
+	public void setTtitle(String ttitle) 	 { this.ttitle = ttitle;	 }
+}

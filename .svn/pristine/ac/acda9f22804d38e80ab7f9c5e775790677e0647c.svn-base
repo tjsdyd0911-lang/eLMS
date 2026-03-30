@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="elms.student">
+	<select id="match" parameterType="com.elms.vo.UserVO" resultType="java.lang.Integer">
+		select count(*) from user 
+		where uid = #{uid} and pw = md5(#{pw})
+	</select>
+	
+	<select id="info" parameterType="com.elms.vo.UserVO" resultType="com.elms.vo.UserVO">
+		select * from user where uid = #{uid}
+	</select>
+	
+	<update id="update" parameterType="com.elms.vo.UserVO">
+		update user 
+		set hp = #{hp}, pw = md5(#{pw}) 
+		where uid = #{uid}
+	</update>
+	
+	<select id="selectlist" resultType="com.elms.vo.SubjectVO">
+		select s.sno, s.sname, s.uno, s.cnt,
+		u.name as uname, 
+		date_format(s.astart, '%Y-%m-%d') as astart, 
+        date_format(s.aend, '%Y-%m-%d') as aend, 
+        date_format(s.sstart, '%Y-%m-%d') as sstart, 
+        date_format(s.send, '%Y-%m-%d') as send,
+        count(a.sno) as applycnt		
+ 		from subject s
+ 		left join user u on s.uno = u.uno
+ 		left join apply a on s.sno = a.sno
+ 		group by s.sno
+	</select>
+	<select id="applyselect" parameterType="java.lang.Integer" resultType="int">
+		select count(uno) from apply where uno = #{uno} and sno = #{sno}
+	</select>
+</mapper>

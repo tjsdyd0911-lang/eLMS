@@ -1,0 +1,105 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ include file="../../include/student/head.jsp"%>
+<script>
+window.onload = function()
+{
+	$("#title").focus();
+	$("#btnSbm").click(function(){
+		DoSubmit();
+	});
+}
+
+function DoSubmit()
+{
+	if($("#title").val() == "")
+	{
+		alert("제목을 입력하세요.");
+		$("#title").focus();
+		return;
+	}
+	if($("#content").val() == "")
+	{
+		alert("내용을 입력하세요.");
+		$("#content").focus();
+		return;
+	}
+	if(confirm("게시물을 저장하시겠습니까?") == true)
+	{
+		$("#frm").submit();
+	}
+	
+}
+</script>
+    <div class="main-container">
+        <aside>
+            <div class="side-menu-top">
+             	<a href="../notice/list.do" class="menu-item">공지사항</a>
+                <a href="../apply/apply.do" class="menu-item">수강 신청</a>
+                <a href="../task/list.do" class="menu-item active">과제 관리</a>
+            </div>
+ <%@ include file="../../include/student/side.jsp"%>           
+        </aside>
+        
+        <main>
+            <!-- Breadcrumb 및 제목 한 줄 배치 규격 -->
+            <div class="content-header">
+                <h2 class="content-title">과제 작성</h2>
+                <nav aria-label="breadcrumb">
+                    <div class="breadcrumb">
+                        <a href="list.do">과제관리 &nbsp; </a> > &nbsp; <span>과제작성</span>
+                    </div>
+                </nav>
+            </div>
+            <hr class="view-divider">
+
+            <div class="submit-card">
+                <form id="frm" name="frm" action="writeok.do" method="post" enctype="multipart/form-data">
+                	<input type="hidden" name="tno" value="${param.tno}">
+                    <div class="row info-row">
+	                    <div class="col-md-4">
+	                        <label class="form-label">과목명</label>
+						${ view.title }
+	                    </div>
+	                    <div class="col-md-4">
+	                        <label class="form-label">과제명</label>
+	                    	${ view.sname }    
+	                    </div>
+	                    <div class="col-md-4">
+	                        <label class="form-label">마감일</label>
+	                        ${ view.edate }
+	                    </div>
+                    </div>
+                	<br>
+                	<br>
+                    <!-- 과제 제목 -->
+                    <div class="form-group">
+                        <label class="form-label">과제 제목</label>
+                        <input type="text" id="title" name="title" class="form-control custom-input" placeholder="제출할 과제의 제목을 입력하세요.">
+                    </div>
+
+                    <!-- 첨부 파일 -->
+                    <div class="form-group">
+                        <label class="form-label">첨부 파일 <span class="sub-text">최대 50MB까지 가능합니다.</span></label>
+                        <input type="file" id="fileInput" name="attach" class="form-control custom-input">
+                    </div>
+
+                    <!-- 과제 내용 -->
+                    <div class="form-group">
+                        <label class="form-label">과제 내용</label>
+                        <textarea id="content" name="content" class="form-control custom-input" placeholder="과제에 대한 보충 설명이나 내용을 입력하세요"></textarea>
+                    </div>
+
+                    <!-- 버튼 영역 -->
+                    <div class="btn-container">
+                        <button id="btnSbm" type="button" class="btn-submit">등록</button>
+                        <a href="view.do"><button type="button" class="btn-cancel">취소</button></a>
+                    </div>
+                </form>
+            </div>
+        </main>
+        <!-- [CONTENT] MAIN END -->
+    </div>
+
+</body>
+</html>

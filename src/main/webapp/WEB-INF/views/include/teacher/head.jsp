@@ -1,0 +1,47 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이젠대학교 ELMS</title>
+ 	<!-- 구글 폰트 (Noto Sans KR) -->
+	<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">   
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="<c:url value='/resources/css/teacher.css'/>">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="<c:url value='/resources/js/jquery-3.7.1.min.js'/>"></script>
+    <script src="${pageContext.request.contextPath}/resources/js/file-validator.js"></script>
+</head>
+<body>
+    <header>
+        <div class="logo-section">
+            <div class="logo-box">EZ</div>
+            <div class="university-name">이젠대학교</div>
+        </div>
+        <div class="search-bar-container">
+            <input type="text" id="totalKey" name="totalKey" class="search-bar" placeholder="과제제목을 검색하세요..." value="${key}">
+            <a href="javascript:DoSearchTask();"><i class="fa-solid fa-magnifying-glass search-icon"></i></a>
+        </div>
+        <div class="user-info ms-auto">
+            <span>[ ${ login.name } ] 님 환영합니다</span>
+            <button class="btn-header" onclick="document.location='../user/update.do';">회원정보수정</button>
+            <button class="btn-header" onclick="document.location='<c:url value='/logout.do'/>';">로그아웃</button>
+        </div>
+    </header>
+<script>
+    $(function(){
+		$("#totalKey").on("keydown", function(e){
+			if(e.keyCode == 13){
+				DoSearchTask();
+			}
+		});
+	});
+	function DoSearchTask()
+	{
+		document.location = "<c:url value='/teacher/task/list.do'/>?key=" + $("#totalKey").val();
+	}
+</script>
